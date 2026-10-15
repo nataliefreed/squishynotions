@@ -5,9 +5,9 @@ Small creative tools, one folder each, published together as a gallery on GitHub
 ```
 index.html          the gallery (search, tag filters, random tool)
 tools/
-  doodle-pad/       an example tool
+  spirogator/       one folder per tool, each with its own history
   _template/        copied by `npm run new`
-scripts/            dev server, site build, new-tool generator
+scripts/            dev server, site build, new-tool and import scripts
 AGENTS.md           the conventions every tool follows (CLAUDE.md points to it)
 ```
 
@@ -37,13 +37,19 @@ Or skip the generator: any folder in `tools/` with an `index.html` and a `tool.j
 
 ## Bring in an older tool
 
-To keep its git history (the repo needs at least one commit first):
+The import script keeps the tool's full git history. Every commit is rewritten so its files live under `tools/old-tool/`, which means `git log` and `git blame` follow the tool's folder and still credit whoever wrote each line. Authors, dates and messages don't change, and the original repo is never touched. The script checks that nothing was lost before it changes this repo. It needs bash, git and perl, and a clean working tree.
 
 ```sh
-git subtree add --prefix=tools/old-tool https://github.com/YOU/old-tool.git main
+npm run import -- https://github.com/YOU/old-tool old-tool
 ```
 
-Or just copy the files in:
+After the repo URL comes the slug, which becomes the folder name under `tools/`. You can add the branch to import (the repo's default branch if you leave it out), and then a folder name if you only want one folder of a bigger repo:
+
+```sh
+npm run import -- https://github.com/YOU/projects color-picker main color_picker_from_image
+```
+
+If you don't need the history, copying the files in works too:
 
 ```sh
 cp -r ~/old-tool tools/old-tool

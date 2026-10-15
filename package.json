@@ -10,6 +10,7 @@
     "start": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "preview": "node scripts/build.mjs && node scripts/serve.mjs --dist",
-    "new": "node scripts/new-tool.mjs"
+    "new": "node scripts/new-tool.mjs",
+    "import": "bash scripts/import-tool.sh"
   }
 }

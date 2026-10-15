@@ -6,7 +6,7 @@ A collection of small, self-contained creative tools, published as static files 
 
 - `tools/<slug>/` is one folder per tool. The slug is lowercase-kebab-case and becomes the URL.
 - `index.html` at the repo root is the gallery. It reads `tools.json`, which is generated from every tool's `tool.json`. Never create `tools.json` by hand.
-- `scripts/` holds the build script, the dev server, and the new-tool generator.
+- `scripts/` holds the build script, the dev server, the new-tool generator, and the import script.
 - `tools/_template/` is the starting point for new tools. Folders that start with `_` are not published.
 
 ## Rules for every tool
@@ -32,9 +32,16 @@ A collection of small, self-contained creative tools, published as static files 
 
 Give the tool its own `package.json` inside its folder with a `build` script. `npm run build` at the root installs and builds it, then publishes its output folder (`dist/` by default, or whatever `outputDir` says in its `tool.json`). Configure the bundler for relative URLs (for Vite, `base: './'`). Don't add dependencies to the root `package.json`.
 
+## Tools imported from other repos
+
+Imported tools keep their original code and git history. When you change one, make small edits and don't reformat, rename or reorganize its files, so `git blame` keeps pointing at the people who wrote them. The rules above are for new tools. Older ones may not meet all of them yet (several load libraries from a CDN, for example), so only bring them up to the rules when asked.
+
+To bring in a tool from another repo, use `npm run import` (see Working here). Don't copy its files in by hand when the history matters.
+
 ## Working here
 
 - New tool: `npm run new -- my-tool "My Tool"`, then edit its `tool.json` and `index.html`.
+- Tool from another repo: `npm run import -- <repo-url> <slug> [branch] [folder]`, then add its `tool.json`. It keeps the full history and refuses to run with uncommitted changes.
 - Run locally: `npm start`, then open http://localhost:8000. The gallery list refreshes on each page load.
 - Before pushing: `npm run build`. It fails with a list of problems if any `tool.json` is wrong. `npm run preview` serves the built site, which is exactly what GitHub Pages will serve.
 - When working on one tool, only change that tool's folder.
