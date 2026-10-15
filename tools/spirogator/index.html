@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Spirogator</title>
+
+    <!-- JQuery -->
+    <script
+            src="https://code.jquery.com/jquery-3.2.1.min.js"
+            integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+            crossorigin="anonymous">
+    </script>
+    <!-- jQuery Tools -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-tools/1.2.7/jquery.tools.min.js"></script>
+
+    <!-- Paper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.11.4/paper-full.min.js"></script>
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/1a53cc8a99.js" crossorigin="anonymous"></script>
+
+    <!-- Load PaperScript and associate it with canvas -->
+    <script type="text/paperscript" src="js/paperscript.js" canvas="canvas"></script>
+
+    <!-- Color picker -->
+    <script src='js/spectrum.js'></script>
+
+    <!-- FileSaver and CanvastoBlob for exporting -->
+    <script src="js/canvas-toBlob.js"></script>
+    <script src="js/FileSaver.min.js"></script>
+
+    <!-- external javascript file -->
+    <script type='text/javascript' src="js/script.js"></script>
+
+</head>
+
+<body>
+
+
+<!--<a href="#panel-327424" data-toggle="tab">Make Drawings</a>-->
+<!--<a href="#panel-106147" data-toggle="tab">Make Algorithms</a>-->
+<!--<a href="#panel-106147" data-toggle="tab">Make Gears</a>-->
+<!--<a href="#panel-106147" data-toggle="tab">What's Going On?</a>-->
+
+<!--<div id="title-logo">-->
+<!--Spirogator-->
+<!--</div>-->
+
+<div class="tab">
+    Make Drawings
+</div>
+
+<div class="workspace">
+    <div class="canvas-container">
+        <canvas id="canvas" width="600" height="600"></canvas>
+    </div>
+
+    <div id="controls-sidebar">
+
+        <div id="button-bar">
+            <!--<div class="left-buttons">-->
+                <button type="button" class="control-button" id="play-button" title="play">
+                    <i class="fas fa-play"></i>
+                </button>
+
+                <button type="button" class="control-button" id="pause-button" style="display: none" title="pause">
+                    <i class="fas fa-pause"></i>
+                </button>
+
+            <button type="button" class="control-button" id="clear-button" title="clear">
+                <i class="far fa-trash-alt"></i>
+            </button>
+
+            <button type="button" class="img-icon-button" id="download-drawing-button" title="download drawings">
+                <img src="images/spiro download button.png" class="img-icon" alt="download drawing">
+            </button>
+            <button type="button" class="img-icon-button" id="download-gears-button" title="download gears">
+                <img src="images/gear download button.png" class="img-icon" alt="download gears">
+            </button>
+
+            <span id="export-label">Download</span>
+
+
+        </div>
+
+        <div class='sliders'>
+
+            <div class="control">
+                <label for="outer-gear-teeth-slider">Outer Gear Teeth:</label>
+                <input type="range" id="outer-gear-teeth-slider" value="120" min="6" max="170">
+            </div>
+
+            <div class="control">
+                <label for="inner-gear-teeth-slider">Inner Gear Teeth:</label>
+                <input type="range" id="inner-gear-teeth-slider" value="70" min="6" max="170">
+            </div>
+
+            <div class="control">
+                <label for="pen-distance-slider">Pen Distance (percent of radius):</label>
+                <input type="range" id="pen-distance-slider" min="0" max="100" step="1" value="50">
+            </div>
+
+
+            <div class="control">
+                <label for="pen-width-slider">Pen Width</label>
+                <input type="range" id="pen-width-slider" min="1" max="30" value="2">
+            </div>
+
+            <div id="colors-panel">
+
+                <div id="color-buttons-container">
+                    <button type="button" class="color-button" style="background-color:#ff0000;"></button>
+                    <button type="button" class="color-button" style="background-color:#ff8713;"></button>
+                    <button type="button" class="color-button" style="background-color:#ffe400;"></button>
+                    <button type="button" class="color-button" style="background-color:#00e355;"></button>
+                    <button type="button" class="color-button" style="background-color:#00d6d6;"></button>
+                    <button type="button" class="color-button" style="background-color:#002aff;"></button>
+                    <!--<button type="button" class="color-button" style="background-color:#7f00ba;"></button>-->
+
+                    <button type="button" class="no-color-button">
+                        <i class="fas fa-times"></i>
+                    </button>
+
+                </div>
+
+                <div id="color-picker-container">
+                    <input type="color" id="pick-color" name="pick-color">
+                    <img src="images/color wheel small.png" id="color-wheel" alt="color wheel">
+                    <script>
+
+                    </script>
+                </div>
+
+
+            </div>
+
+            <div class="control">
+                <label for="speed-slider">Speed:</label>
+                <input type="range" id="speed-slider" min="1" max="15" value="3">
+            </div>
+
+            <!--<input type='text' id="colorpicker" />-->
+
+
+        </div>
+
+        <div class="info-box">
+            <p>
+                Number of petals: <span id="num-petals"></span>
+            </p>
+            <p>
+                Number of laps inside outer gear: <span id="num-turns"></span>
+            </p>
+        </div>
+    </div>
+
+
+
+</div>
+
+<!-- make fancy range/sliders happen -->
+<script>
+    $(":range").rangeinput();
+</script>
+
+<div class="footer">
+
+    <div id="about">
+        <p>
+            Spirogator is by Natalie Freed and Paula Hooper, based on our <a href="http://nataliefreed.github.io/spirogator/">desktop version</a> now ported to the web!
+        </p>
+        <p>
+            We are creating curriculum and tools for learning through digital design fabrication.
+        </p>
+        <p>
+            Check out <a href="http://hightechlowcost.org/guides/spiro-inquiry/" target="_blank">this guide</a> developed for educators in collaboration with the <a href="http://hightechlowcost.org/about/" target="_blank">HTLC project</a>.
+        </p>
+    </div>
+
+</div>
+
+<link href="css/style.css" rel="stylesheet">
+
+<!-- rangeinput styling -->
+<link rel="stylesheet" type="text/css" href="css/range.css"/>
+
+<!-- color picker -->
+<link rel='stylesheet' href='css/spectrum.css' />
+
+
+
+</body>
+
+</html>
