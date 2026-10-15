@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Paper Doll Designer</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="">
+
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/style.css" rel="stylesheet">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+	<!--[if lt IE 9]>
+	<script src="js/html5shiv.js"></script>
+	<![endif]-->
+
+	<!-- Fav and touch icons -->
+	<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/apple-touch-icon-144-precomposed.png">-->
+	<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/apple-touch-icon-114-precomposed.png">-->
+	<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="img/apple-touch-icon-72-precomposed.png">-->
+	<!--<link rel="apple-touch-icon-precomposed" href="img/apple-touch-icon-57-precomposed.png">-->
+	<link rel="shortcut icon" href="assets/favicon.png">
+
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/scripts.js"></script>
+
+	<!-- Load the Paper.js library -->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.10.2/paper-full.min.js"></script>
+	<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.15/paper-full.min.js"></script> -->
+
+	<!--<script type="text/javascript" src="scripts.js"></script>-->
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+	<script src="blockly/blockly_compressed.js"></script>
+	<script src="blockly/javascript_compressed.js"></script>
+	<script src="blockly/blocks_compressed.js"></script>
+	<script src="blockly/msg/js/en.js"></script>
+
+	<script src="blockly/blocks/patternmaker.js"></script>
+	<script src="blockly/generators/javascript/patternmaker.js"></script>
+
+
+	<style type="text/css">
+		body {
+			background-color: #CACCCC;
+		}
+	</style>
+
+	<script>
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+				m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+		ga('create', 'UA-60340243-1', 'auto');
+		ga('send', 'pageview');
+
+	</script>
+</head>
+
+<body>
+
+<div class="container">
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<h1>
+				Paper Doll Designer
+			</h1>
+			<dl>
+				<dd>
+					Choose clothes and accessories and decorate them with code!
+				</dd>
+			</dl>
+		</div>
+	</div>
+	<div class="row clearfix">
+		<div class="col-md-5 column">
+			<button type="button" class="btn btn-default btn-lg" onclick="changeOutfit()">Change outfit</button>
+			<button type="button" class="btn btn-default btn-lg" onclick="changeHair()">Change hair</button>
+			<button type="button" class="btn btn-default btn-lg" onclick="changeSkinTone()">Change skin tone</button>
+		</div>
+
+		<div class="col-md-1 column">
+				<!--X:<div id="xCoordinate"></div> Y: <div id="yCoordinate"></div>-->
+		</div>
+
+		<div class="col-md-2 column">
+			<button type="button" class="btn btn-info btn-lg" style="margin-left: 60px;" onclick="runCode()">Reset and run code</button>
+		</div>
+
+		<div class="col-md-4 column text-right">
+			<button type="button" class="btn btn-warning btn-lg" onclick="reset()">Reset</button>
+			<button type="button" class="btn btn-default btn-lg" onclick="downloadBitmapDoll()">Print doll</button>
+			<button type="button" class="btn btn-default btn-lg" onclick="downloadBitmapOutfit()">Print outfit</button>
+		</div>
+
+
+	</div>
+
+	<div class="row clearfix top-space">
+		<div class="col-md-4 column">
+			<canvas id="dollCanvas" width="340" height="550"></canvas>
+
+		</div>
+
+		<!--<div class="col-md-12 column text-right top-space">-->
+			<!---->
+		<!--</div>-->
+
+		<div class="col-md-6 column">
+
+			<xml id="toolbox" style="display: none">
+
+					<block type="patternmaker_stripe"></block>
+					<block type="patternmaker_draw_shape"></block>
+					<block type="patternmaker_pen_color">
+						<value name="PEN_COLOR">
+							<block type="colour_picker" id="90" x="304" y="44">
+								<field name="COLOUR">#ff0000</field>
+							</block>
+						</value>
+					</block>
+					<block type="patternmaker_pen_size">
+						<value name="PEN_SIZE">
+							<block type="math_number">
+								<field name="NUM">2</field>
+							</block>
+						</value>
+					</block>
+				<!--<block type="patternmaker_repeatAcross">-->
+					<!--<value name="TIMES">-->
+						<!--<block type="math_number">-->
+							<!--<field name="NUM">5</field>-->
+						<!--</block>-->
+					<!--</value>-->
+					<!--<value name="SPACING">-->
+						<!--<block type="math_number">-->
+							<!--<field name="NUM">10</field>-->
+						<!--</block>-->
+					<!--</value>-->
+				<!--</block>-->
+
+				<block type="controls_repeat_ext">
+					<value name="TIMES">
+						<block type="math_number">
+							<field name="NUM">5</field>
+						</block>
+					</value>
+				</block>
+					<block type="patternmaker_goTo"></block>
+					<block type="patternmaker_move_direction">
+						<value name="STEPS">
+							<block type="math_number">
+								<field name="NUM">10</field>
+							</block>
+						</value>
+					</block>
+					<block type="patternmaker_setxy">
+						<value name="X">
+							<block type="math_number">
+								<field name="NUM">45</field>
+							</block>
+						</value>
+						<value name="Y">
+							<block type="math_number">
+								<field name="NUM">100</field>
+							</block>
+						</value>
+					</block>
+
+				<block type="math_number"></block>
+
+				<block type="math_random_int" inline="false">
+					<value name="FROM">
+						<block type="math_number" id="26">
+							<field name="NUM">1</field>
+						</block>
+					</value>
+					<value name="TO">
+						<block type="math_number" id="27">
+							<field name="NUM">100</field>
+						</block>
+					</value>
+				</block>
+
+				<block type="colour_random"></block>
+
+					<block type="math_arithmetic"></block>
+					<block type="variables_get"></block>
+					<block type="variables_set">
+						<value name="VALUE">
+							<block type="math_number">
+								<field name="NUM">0</field>
+							</block>
+						</value>
+					</block>
+					<block type="math_change">
+						<value name="DELTA">
+							<block type="math_number">
+								<field name="NUM">1</field>
+							</block>
+						</value>
+					</block>
+
+
+					<!--<block type="logic_compare"></block>-->
+
+
+			</xml>
+
+			<xml id="startBlocks" style="display: none">
+				<block type="patternmaker_start" id="start" movable="false" x="20" y="20"></block>
+			</xml>
+
+			<div id="blocklyDiv" style="height: 640px; width: 900px;"></div>
+			<!--<div id="blockyDivContainer" style="height: 640px; width: 900px;"></div>-->
+
+
+		</div>
+	</div>
+
+
+	<div class="row clearfix">
+
+
+
+
+		<!--<div class="col-md-2 column">-->
+			<!--<div id="textarea"></div>-->
+		<!--</div>-->
+	</div>
+</div>
+
+<script>
+	Blockly.HSV_SATURATION = 0.7;
+	Blockly.HSV_VALUE = 0.9;
+
+	//	Blockly.Blocks.colour.HUE = 10;
+	//	Blockly.Blocks.lists.HUE = 10;
+	Blockly.Blocks.logic.HUE = 93;
+	Blockly.Blocks.colour.HUE = 160;
+	Blockly.Blocks.loops.HUE = 43;
+	Blockly.Blocks.math.HUE = 93;
+	Blockly.Blocks.procedures.HUE = 270;
+	Blockly.Blocks.variables.HUE = 29;
+	Blockly.Blocks.math_change.HUE = 29; //doesn't seem to be working
+
+//	Blockly.JavaScript.workspaceToCode();
+//	Blockly.mainWorkspace.startScrollX = 100;
+
+	Blockly.inject(document.getElementById('blocklyDiv'),
+			{toolbox: document.getElementById('toolbox'), scrollbars:true, trashcan:true});
+
+	Blockly.Xml.domToWorkspace(Blockly.mainWorkspace,
+			document.getElementById('startBlocks'));
+
+	function blocksToJavascript() {
+		Blockly.JavaScript.workspaceToCode();
+
+		var code = getCodeInStartBlock();
+		console.log(code);
+//		$("#textarea").html(code);
+	}
+
+	//by FG
+	 function getCodeInStartBlock() {
+		function isDoBlock(b) { return b.type == "patternmaker_start"; }
+		var do_blocks = Blockly.mainWorkspace.getAllBlocks().filter(isDoBlock);
+		console.assert(do_blocks.length <= 1, "More than one do block!");
+		return Blockly.JavaScript.blockToCode(do_blocks[0]);
+	}
+
+
+
+	Blockly.addChangeListener(blocksToJavascript);
+</script>
+
+
+
+<script>
+	var paperscript = {}; //hold functions and variables defined inside the paperscript code
+
+	var xPos = 34; //same as left shoulder
+	var yPos = 106;
+	var penColor = '#FFFFFF';
+	var penSize = 2;
+	var w = 300;
+	var h = 510;
+
+	function printCode() {
+		console.log(Blockly.JavaScript.workspaceToCode());
+	}
+
+	function reset()
+	{
+		paperscript.clearPattern();
+		paperscript.goToLocation("LEFT_SHOULDER");
+		setPenColor('#FFFFFF');
+		setPenSize(2);
+	}
+
+	function runCode() {
+
+		Blockly.JavaScript.addReservedWords('code');
+		Blockly.JavaScript.workspaceToCode();
+		var code = getCodeInStartBlock();
+
+		reset();
+		try {
+			eval(code);
+		} catch (e) {
+			alert(e);
+		}
+	}
+
+	function math_random_int(a, b) {
+		if (a > b) {
+			// Swap a and b to ensure a is smaller.
+			var c = a;
+			a = b;
+			b = c;
+		}
+		return Math.floor(Math.random() * (b - a + 1) + a);
+	}
+
+	function colour_random() {
+		var num = Math.floor(Math.random() * Math.pow(2, 24));
+		return '#' + ('00000' + num.toString(16)).substr(-6);
+	}
+
+	function addStripe(angle)
+	{
+		paperscript.addStripe(angle);
+	}
+
+	function drawShape(shape)
+	{
+		paperscript.drawShape(shape);
+	}
+
+	function setPenSize(size) {
+		penSize = size;
+	}
+
+	function setPenColor(color) {
+		penColor = color;
+		paperscript.setPaintbrushColor(penColor);
+	}
+
+	function goToLocation(location)
+	{
+		paperscript.goToLocation(location);
+	}
+
+	function goToXY(x, y)
+	{
+		paperscript.goToXY(x, y);
+	}
+
+//	function colorChange() {
+//		var red = Math.round(Math.random() * 255);
+//		var green = Math.round(Math.random() * 255);
+//		var blue = Math.round(Math.random() * 255);
+//		activeOutfit.set('fill', 'rgba(' + red + ',' + green + ',' + blue + ',1)');
+//		console.log("changed color to " + red + "," + green + "," + blue);
+//		canvas.renderAll();
+//	}
+
+	function moveDown(spaces) {
+		paperscript.moveDown(spaces);
+	}
+
+	function moveRight(spaces) {
+		paperscript.moveRight(spaces);
+	}
+
+	function move(direction, spaces)
+	{
+		paperscript.move(direction, spaces);
+	}
+
+	function downloadDataUri(options) {
+		if (!options.url)
+			options.url = "http://download-data-uri.appspot.com/";
+		$('<form method="post" action="' + options.url
+		+ '" style="display:none"><input type="hidden" name="filename" value="'
+		+ options.filename + '"/><input type="hidden" name="data" value="'
+		+ options.data + '"/></form>').appendTo('body').submit().remove();
+	}
+
+	//	$('#export-button').click(function() {
+	function downloadSVG() {
+		var svg = paperscript.project.exportSVG({asString: true});
+		downloadDataUri({
+			data: 'data:image/svg+xml;base64,' + btoa(svg),
+			filename: 'export.svg'
+		});
+	};
+
+	function downloadBitmapDoll() {
+		paperscript.hideAllExceptDollAndOutfit();
+		var png = document.getElementById("dollCanvas").toDataURL("image/png");
+		paperscript.showItAgain();
+		window.open().location = png;
+	}
+
+	function downloadBitmapOutfit() {
+		paperscript.hideAllExceptOutfit();
+		var png = document.getElementById("dollCanvas").toDataURL("image/png");
+		paperscript.showItAgain();
+		window.open().location = png;
+	}
+
+	function changeOutfit() {
+		paperscript.changeOutfit();
+	}
+
+	function changeHair() {
+		paperscript.changeHair();
+
+	}
+
+	function changeSkinTone() {
+		paperscript.changeSkinTone();
+	}
+
+	function clearPattern() {
+		paperscript.clearPattern();
+	}
+
+</script>
+
+
+
+<script type="text/paperscript" canvas="dollCanvas">
+
+	var activeOutfit;
+	var patternGroup;
+	var cursor;
+	var cursorX;
+	var cursorY;
+	var cursorGroup;
+	var rulerWidth = 40;
+
+	var pantsAndShirt;
+	var doll;
+	var dress;
+	var shirt;
+	var pants;
+
+	var starting_skin_tone = '#7B4B2A';
+
+	var active_hair;
+	var short_hair;
+	var bun_hair;
+
+	var paintbrush;
+
+	//skin tone palette from http://bitstrips.com/r/RK8C0
+	var skin_tone_options = [ '#FAE7D0', '#FFCC99', '#FEB186', '#DFC183', '#CEAB69', '#B98865', '#AA724B', '#935D37', '#7B4B2A', '#C8ACA3', '#E8ACA3', '#E8CDA8', '#7B4B2A', '#483728', '#CAA661' ];
+
+	var backgroundThings = new Group();
+
+	var numMarkings = 150; //cm
+	var markingWidth = h / 150;
+
+	console.log(markingWidth);
+
+	/*function onFrame(event) {
+		$("#xCoordinate").html(xPos);
+		$("#yCoordinate").html(yPos);
+	}*/
+
+	function toPaperCoordsX(pos) {
+		return pos * markingWidth;
+	}
+
+	function toPaperCoordsY(pos) {
+		return h - (pos * markingWidth);
+	}
+
+	this.clearPattern = function clearPattern() {
+		patternGroup.removeChildren();
+		patternGroup = new Group(activeOutfit.clone());
+		patternGroup.clipped = true;
+		paper.view.draw();
+	}
+
+	this.changeHair = function changeHair() {
+		if(active_hair === bun_hair)
+		{
+			active_hair = short_hair;
+			bun_hair.visible = false;
+			short_hair.visible = true;
+		}
+		else if(active_hair === short_hair)
+		{
+			active_hair = bun_hair;
+			short_hair.visible = false;
+			bun_hair.visible = true;
+		}
+
+		active_hair.fillColor = new Color(Math.random(), Math.random(), Math.random());
+		paper.view.draw();
+	}
+
+	this.setPaintbrushColor = function setPaintbrushColor(penColor) {
+		paintbrush.children[1].fillColor = penColor;
+		paper.view.draw();
+	}
+
+	this.changeSkinTone = function changeSkinTone() {
+		var tone = skin_tone_options[Math.floor(Math.random() * skin_tone_options.length)];
+		doll.fillColor = tone;
+		paper.view.draw();
+	}
+
+	this.changeOutfit = function changeOutfit() {
+		if(activeOutfit == dress)
+		{
+			activeOutfit = pantsAndShirt;
+
+			doll.visible = false;
+
+			for(var i=0;i<pantsAndShirt.children.length;i++)
+			{
+				pantsAndShirt.children[i].visible = true;
+				console.log("setting visible");
+			}
+			dress.visible = false;
+			doll.visible = true;
+
+			shirt.fillColor = new Color(Math.random(), Math.random(), Math.random());
+			pants.fillColor = new Color(Math.random(), Math.random(), Math.random());
+		}
+		else
+		{
+			activeOutfit = dress;
+
+			doll.visible = false;
+			activeOutfit = dress;
+			dress.visible = true;
+			shirt.visible = false;
+			pants.visible = false;
+			doll.visible = true;
+
+			activeOutfit.fillColor = new Color(Math.random(), Math.random(), Math.random());
+		}
+
+		var pattern = patternGroup.removeChildren(1); //starting at 1
+		patternGroup.removeChildren(); //remove all
+		patternGroup = new Group(activeOutfit.clone());
+		patternGroup.addChildren(pattern);
+		patternGroup.clipped = true;
+
+		paper.view.draw();
+	}
+
+	this.hideAllExceptOutfit = function hideAllExceptOutfit() {
+
+		for(var i=0;i<backgroundThings.children.length;i++) {
+			backgroundThings.children[i].visible = false;
+		}
+
+		activeOutfit.visible = true;
+		patternGroup.visible = true;
+		doll.visible = false;
+		active_hair.visible = false;
+
+		cursorGroup.visible = false;
+
+		paper.view.draw();
+	}
+
+	this.hideAllExceptDollAndOutfit = function hideAllExceptDollAndOutfit() {
+
+		for(var i=0;i<backgroundThings.children.length;i++) {
+			backgroundThings.children[i].visible = false;
+		}
+
+		activeOutfit.visible = true;
+		patternGroup.visible = true;
+
+		cursorGroup.visible = false;
+
+		paper.view.draw();
+	}
+
+	this.showItAgain = function showItAgain() {
+		for(var i=0;i<backgroundThings.children.length;i++) {
+			backgroundThings.children[i].visible = true;
+		}
+
+		activeOutfit.visible = true;
+		patternGroup.visible = true;
+
+		cursorX.visible = true;
+		cursorY.visible = true;
+
+		doll.visible = true;
+		active_hair.visible = true;
+
+		cursorGroup.visible = true;
+
+		paper.view.draw();
+	}
+
+	this.updateCursors = function updateCursors() {
+
+		if(xPos > 90) {
+			xPos = 90;
+		}
+		if(xPos < 0) {
+			xPos = 0;
+		}
+		if(yPos > 150) {
+			yPos = 150;
+		}
+		if(yPos < 0) {
+			yPos = 0;
+		}
+
+		//vertical
+		cursorX.position.x = rulerWidth + toPaperCoordsX(xPos);
+		//horizontal
+		cursorY.position.x = rulerWidth + toPaperCoordsX(xPos) - cursorY.length/2;
+
+		//vertical
+		cursorX.position.y = toPaperCoordsY(yPos) + cursorX.length/2;
+		//horizontal
+		cursorY.position.y = toPaperCoordsY(yPos);
+
+		paintbrush.pivot = paintbrush.bounds.topLeft; //move from the tip of the brush
+		paintbrush.position.x = rulerWidth + toPaperCoordsX(xPos);
+		paintbrush.position.y = toPaperCoordsY(yPos);
+
+		cursorGroup.bringToFront();
+
+		paper.view.draw();
+	}
+
+	this.goToXY = function goToXY(x, y) {
+		xPos = x;
+		yPos = y;
+		this.updateCursors();
+	}
+
+	this.goToLocation = function goToLocation(location) {
+		//eeep, put this into a data structure asap
+		if(location === "LEFT_SHOULDER") {
+			xPos = 34;
+			yPos = 106;
+			this.updateCursors();
+		}
+		else if(location === "RIGHT_SHOULDER") {
+			xPos = 53;
+			yPos = 106;
+			this.updateCursors();
+		}
+		else if(location === "WAIST") {
+
+		}
+		else if(location === "KNEES") {
+
+		}
+		else if(location === "LEFT_TOE") {
+
+		}
+		else if(location === "RIGHT_TOE") {
+
+		}
+	}
+
+	var backgroundRect = new Rectangle(new Point(rulerWidth, 0), new Point(w+rulerWidth, h+rulerWidth));
+	var background = new Path.Rectangle(backgroundRect);
+	backgroundThings.addChild(background);
+	background.fillColor = '#dddddd';
+
+	//vertical ruler
+	var rulerRectY = new Rectangle(new Point(0, 0), new Point(rulerWidth, h));
+	var rulerY = new Path.Rectangle(rulerRectY);
+	rulerY.fillColor = '#F7E048';
+	backgroundThings.addChild(rulerY);
+
+	//horizontal ruler
+	var rulerRectX = new Rectangle(new Point(rulerWidth, h), new Point(w+rulerWidth, h+rulerWidth));
+	var rulerX = new Path.Rectangle(rulerRectX);
+	rulerX.fillColor = '#F7E048';
+	backgroundThings.addChild(rulerX);
+
+	//markings on vertical ruler
+	var label = numMarkings;
+	for(var i=0;i<h-markingWidth;i+=markingWidth*10)
+	{
+		var marking = new Path.Line(new Point(rulerWidth/2, i), new Point(rulerWidth, i));
+		backgroundThings.addChild(marking);
+		marking.strokeColor = 'black';
+		if(i > 0) {
+			var text = new PointText(new Point(rulerWidth/4, i+4));
+			backgroundThings.addChild(text);
+			text.justification = 'center';
+			text.fillColor = 'black';
+			text.content = label;
+		}
+		for(var j=0;j<10;j++)
+		{
+			var smallMarking = new Path.Line(new Point(2*rulerWidth/3, i+j*markingWidth), new Point(rulerWidth, i+j*markingWidth));
+			smallMarking.strokeColor = 'black';
+			backgroundThings.addChild(smallMarking);
+		}
+		label -= 10;
+	}
+	var marking = new Path.Line(new Point(rulerWidth/2, h), new Point(rulerWidth, h));
+	backgroundThings.addChild(marking);
+	marking.strokeColor = 'black';
+	var text = new PointText(new Point(rulerWidth/4, h+4));
+	backgroundThings.addChild(text);
+	text.justification = 'center';
+	text.fillColor = 'black';
+	text.content = 0;
+
+	//markings on horizontal ruler
+	label = 0;
+	for(var i=rulerWidth;i<w+rulerWidth-markingWidth;i+=markingWidth*10)
+	{
+		var marking = new Path.Line(new Point(i, h), new Point(i, h+rulerWidth/2));
+		backgroundThings.addChild(marking);
+		marking.strokeColor = 'black';
+		var text = new PointText(new Point(i, h+3*rulerWidth/4));
+		backgroundThings.addChild(text);
+		text.justification = 'center';
+		text.fillColor = 'black';
+		text.content = label;
+		for(var j=0;j<10;j++)
+		{
+			var smallMarking = new Path.Line(new Point(i+j*markingWidth, h), new Point(i+j*markingWidth, h+rulerWidth/3));
+			backgroundThings.addChild(smallMarking);
+			smallMarking.strokeColor = 'black';
+		}
+		label+=10;
+	}
+
+
+
+
+	//call stack paiiiiin, figure out how to do this better!
+	project.importSVG('assets/wide pants.svg', {
+        expandShapes: true,
+        onLoad: function(item) {
+        	pants = item;
+        	item.visible = false;
+        	item.position.x = view.center.x+rulerWidth/2;
+
+        	project.importSVG('assets/doll.svg', {
+				expandShapes: true,
+				onLoad: function(item) {
+					doll = item;
+					doll.visible = false; //let's not have any wardrobe malfunctions
+					doll.position.x = view.center.x+rulerWidth/2;
+					doll.fillColor = starting_skin_tone;
+					console.log("doll loaded");
+
+					project.importSVG('assets/tshirt.svg', {
+						expandShapes: true,
+						onLoad: function(item) {
+							shirt = item;
+							shirt.visible = false;
+							shirt.position.x = view.center.x+rulerWidth/2;
+							pantsAndShirt = new Group();
+							pantsAndShirt.addChild(pants);
+							pantsAndShirt.addChild(shirt);
+
+							project.importSVG('assets/hair in bun.svg', {
+								expandShapes: true,
+								onLoad: function(item) {
+									bun_hair = item;
+									active_hair = bun_hair;
+									item.position.x = view.center.x+rulerWidth/2+1;
+									project.importSVG('assets/no sleeve dress.svg', {
+										expandShapes: true,
+										onLoad: function(item) {
+											activeOutfit = item;
+											dress = item;
+											activeOutfit.fillColor = new Color(Math.random(), Math.random(), Math.random());
+											activeOutfit.position.x = view.center.x+rulerWidth/2;
+											patternGroup = new Group(activeOutfit.clone());
+											patternGroup.clipped = true;
+
+											project.importSVG('assets/messy short hair.svg', {
+												expandShapes: true,
+												onLoad: function(item) {
+													short_hair = item;
+													item.visible = false;
+													short_hair.fillColor = new Color(Math.random(0, 255), Math.random(0, 255), Math.random(0, 255));
+													item.position.x = view.center.x+rulerWidth/2;
+
+													project.importSVG('assets/paintbrush.svg', {
+														expandShapes: true,
+														onLoad: function(item) {
+															var paintbrush_no_paint = item;
+															project.importSVG('assets/paint.svg', {
+																expandShapes: true,
+																onLoad: function(item) {
+																	paintbrush = new Group();
+																	paintbrush.addChild(paintbrush_no_paint);
+																	paintbrush.addChild(item);
+
+																	paintbrush.pivot = paintbrush.bounds.topCenter; //move from the tip of the brush
+																	item.fillColor = penColor;
+																	paintbrush.rotate(-30);
+																	paintbrush.scale(0.5, 0.5);
+																	paintbrush.position.x = rulerWidth+toPaperCoordsX(xPos);
+																	paintbrush.position.y = toPaperCoordsY(yPos);
+
+																	console.log("paint and paintbrush");
+
+																	//set up cursors to show current x, y position
+																	cursor = new Point(rulerWidth+toPaperCoordsX(xPos), toPaperCoordsY(yPos));
+
+																	//horizontal
+																	cursorY = new Path.Line(new Point(-1*w, toPaperCoordsY(yPos)), cursor);
+																	cursorY.strokeColor = '#000000';
+																	cursorY.dashArray = [6, 4];
+
+																	//vertical
+																	cursorX = new Path.Line(new Point(rulerWidth+toPaperCoordsX(xPos), 2*h), cursor);
+																	cursorX.strokeColor = '#000000';
+																	cursorX.dashArray = [6, 4];
+
+																	cursorGroup = new Group();
+																	cursorGroup.addChild(cursorX);
+																	cursorGroup.addChild(cursorY);
+																	cursorGroup.addChild(paintbrush);
+
+																	//doll.sendToBack();
+																	//backgroundRect.sendToBack();
+																	doll.visible = true; //ok we're clothed, we can come out now
+																	cursorGroup.bringToFront();
+
+																	paper.view.draw();
+																}
+															});
+														}
+													});
+												}
+											});
+										}
+									});
+								}
+							});
+        				}
+					});
+				}
+			});
+
+		}
+    });
+
+
+
+	this.addStripe = function addStripe(angle) {
+
+		// Create a Paper.js Path to draw a line into it:
+		var path = new paper.Path();
+		// Give the stroke a color
+		path.strokeColor = penColor;
+		path.strokeWidth = toPaperCoordsX(penSize);
+		var start = new paper.Point(-1*w*2, toPaperCoordsY(yPos));
+		console.log("yPos: " + yPos);
+		console.log("paper yPos: " + toPaperCoordsY(yPos));
+		// Move to start and draw a line from there
+		path.moveTo(start);
+
+		path.lineTo(start.add([w*3, 0]));
+
+		var rotateAround = new Point(rulerWidth+ toPaperCoordsX(xPos), toPaperCoordsY(yPos));
+		path.rotate(360-angle, rotateAround);
+
+		patternGroup.addChild(path);
+
+		// Draw the view now:
+		paper.view.draw();
+	}
+
+	this.drawShape = function drawShape(shape) {
+
+		if(shape === 'STAR') {
+
+	 		var star = new Path.Star({
+				center: [rulerWidth+toPaperCoordsX(xPos), toPaperCoordsY(yPos)],
+				points: 5,
+				radius1: toPaperCoordsX(penSize/2),
+				radius2: toPaperCoordsX(penSize),
+				fillColor: penColor
+			});
+			patternGroup.addChild(star);
+		}
+		else if(shape === 'RECTANGLE')
+		{
+
+
+		}
+		else if(shape === 'CIRCLE')
+		{
+			var circle = new Path.Ellipse({
+				center: [rulerWidth+toPaperCoordsX(xPos), toPaperCoordsY(yPos)],
+				radius: toPaperCoordsX(penSize),
+				fillColor: penColor
+			});
+			patternGroup.addChild(circle);
+
+		}
+		else if(shape === 'DIAMOND')
+		{
+			var star = new Path.Star({
+				center: [rulerWidth+toPaperCoordsX(xPos), toPaperCoordsY(yPos)],
+				points: 4,
+				radius1: toPaperCoordsX(penSize/1.5),
+				radius2: toPaperCoordsX(penSize),
+				fillColor: penColor
+			});
+			star.rotate(45);
+			star.scale(1, 2);
+			patternGroup.addChild(star);
+
+		}
+		else if(shape === 'HEART')
+		{
+
+
+		}
+		else if(shape === 'TRIANGLE')
+		{
+			var star = new Path.Star({
+				center: [rulerWidth+toPaperCoordsX(xPos), toPaperCoordsY(yPos)],
+				points: 3,
+				radius1: toPaperCoordsX(penSize/2),
+				radius2: toPaperCoordsX(penSize),
+				fillColor: penColor
+			});
+			star.rotate(180);
+			patternGroup.addChild(star);
+
+		}
+		paper.view.draw();
+	}
+
+
+
+	this.moveDown = function moveDown(spaces) {
+		yPos -= spaces;
+		this.updateCursors();
+
+		//console.log('yPos: ' + yPos);
+		//console.log("paper yPos: " + toPaperCoordsY(yPos));
+		//cursorY.position.y += toPaperCoordsX(spaces);
+		//cursorX.position.y += toPaperCoordsX(spaces);
+		//paper.view.draw();
+	}
+
+	this.moveRight = function moveRight(spaces) {
+		xPos += spaces;
+		this.updateCursors();
+
+		//console.log('xPos: ' + xPos);
+		//cursorX.position.x += toPaperCoordsX(spaces);
+		//cursorY.position.x += toPaperCoordsX(spaces);
+		//paper.view.draw();
+	}
+
+	this.move = function move(direction, spaces) {
+		if(direction === "DOWN") {
+			moveDown(spaces);
+		}
+	  	else  if(direction === "UP") {
+			spaces = -1 * spaces;
+			moveDown(spaces);
+	  	}
+	  	else  if(direction === "LEFT") {
+	  		spaces = -1 * spaces;
+			moveRight(spaces);
+		}
+	  	else  if(direction === "RIGHT") {
+			moveRight(spaces);
+		}
+	}
+
+	paper.install(window.paperscript);
+
+
+</script>
+
+</body>
+</html>
