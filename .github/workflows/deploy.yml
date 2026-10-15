@@ -25,8 +25,12 @@ jobs:
         with:
           node-version: 22
 
-      # Validates every tool.json, builds any tool that has its own build,
-      # and assembles the whole site into dist/. Fails with a list of problems.
+      # Broken links, menus that differ between pages, bad tool.json files.
+      - name: Check the site
+        run: node scripts/check.mjs
+
+      # Builds any tool that has its own build and assembles the whole site
+      # (pages, assets, gallery, tools) into dist/. Fails with a list of problems.
       - name: Build site
         run: node scripts/build.mjs
 

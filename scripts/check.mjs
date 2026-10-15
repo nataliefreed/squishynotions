@@ -1,17 +1,16 @@
 // Checks the site for the mistakes that are easy to make when every page is its own HTML file:
 //   node scripts/check.mjs      (or: npm run check)
 //
-//  - every link to a page, file or image on this site goes somewhere that exists
-//  - links to the tools (/creative-tools/tools/<name>/) match a tool in ../creative-tools, if that repo is next door
+//  - every link to a page, file, image or tool on this site goes somewhere that exists
 //  - the menu is the same list of pages on every page
 //  - every page has a title and exactly one <h1>
+//  - every tool has a valid tool.json
+// The tools themselves (tools/<name>/) have their own conventions; only their tool.json is checked.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, posix, relative, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { collectTools, root } from './lib.mjs';
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const toolsRepo = resolve(root, '..', 'creative-tools');
-const skip = new Set(['.git', 'node_modules', 'scripts', 'assets']);
+const skip = new Set(['.git', '.github', 'node_modules', 'scripts', 'assets', 'tools', 'dist']);
 
 function pages(dir = root, found = []) {
   for (const name of readdirSync(dir)) {
@@ -24,12 +23,13 @@ function pages(dir = root, found = []) {
 }
 
 const problems = [];
-const problem = (page, message) => problems.push(`${relative(root, page).split(sep).join('/')}: ${message}`);
+const nice = (page) => relative(root, page).split(sep).join('/');
+const problem = (page, message) => problems.push(`${nice(page)}: ${message}`);
 const menus = [];
+const pageFiles = pages();
 let linkCount = 0;
-let toolsChecked = false;
 
-for (const page of pages()) {
+for (const page of pageFiles) {
   const html = readFileSync(page, 'utf8');
   const sitePath = '/' + relative(root, dirname(page)).split(sep).filter(Boolean).join('/');   // e.g. /try-me
   const here = sitePath === '/' ? '/' : sitePath + '/';
@@ -53,16 +53,6 @@ for (const page of pages()) {
       continue;
     }
     const [path] = href.split(/[?#]/);
-
-    if (path.startsWith('/creative-tools/')) {                      // the other repo, served under the same domain
-      if (!existsSync(toolsRepo)) continue;
-      toolsChecked = true;
-      const rest = path.slice('/creative-tools/'.length);
-      const wanted = rest.endsWith('/') || rest === '' ? join(toolsRepo, rest, 'index.html') : join(toolsRepo, rest);
-      if (!existsSync(wanted)) problem(page, `${href} is not a tool in the creative-tools repo`);
-      continue;
-    }
-
     const target = path.startsWith('/') ? join(root, path) : resolve(dirname(page), path);
     const file = path.endsWith('/') || (existsSync(target) && statSync(target).isDirectory()) ? join(target, 'index.html') : target;
     if (!existsSync(file)) problem(page, `${href} does not exist`);
@@ -72,12 +62,15 @@ for (const page of pages()) {
 const first = menus[0];
 for (const m of menus.slice(1)) {
   if (m.items.join('\n') !== first.items.join('\n')) {
-    problem(m.page, `menu differs from the one on ${relative(root, first.page).split(sep).join('/')}\n      this page: ${m.items.join(' | ')}\n      that page: ${first.items.join(' | ')}`);
+    problem(m.page, `menu differs from the one on ${nice(first.page)}\n      this page: ${m.items.join(' | ')}\n      that page: ${first.items.join(' | ')}`);
   }
 }
+
+const { tools, problems: toolProblems } = await collectTools();
+problems.push(...toolProblems);
 
 if (problems.length) {
   console.error(`${problems.length} problem${problems.length === 1 ? '' : 's'}:\n` + problems.map((p) => '  ' + p).join('\n'));
   process.exit(1);
 }
-console.log(`OK: ${pages().length} pages, ${linkCount} on-site links, menus match${toolsChecked ? ', tool links match ../creative-tools' : ' (../creative-tools not found, so tool links were not checked)'}.`);
+console.log(`OK: ${pageFiles.length} pages, ${linkCount} on-site links, menus match, ${tools.length} tools with a valid tool.json.`);

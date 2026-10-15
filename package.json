@@ -1,8 +1,8 @@
 {
-  "name": "creative-tools",
+  "name": "squishynotions",
   "private": true,
   "type": "module",
-  "description": "A pocket of small creative tools, published as static files.",
+  "description": "The Squishy Notions website and its creative tools, published as static files on GitHub Pages.",
   "engines": {
     "node": ">=20"
   },
@@ -10,6 +10,7 @@
     "start": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
     "preview": "node scripts/build.mjs && node scripts/serve.mjs --dist",
+    "check": "node scripts/check.mjs",
     "new": "node scripts/new-tool.mjs",
     "import": "bash scripts/import-tool.sh"
   }
