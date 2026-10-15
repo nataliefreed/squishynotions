@@ -126,3 +126,5 @@ Two repos were merged into this one, with all of their history: the creative too
 - "Make your favorite hypotrochoid" is one link instead of two touching ones.
 
 The site stylesheet was written by hand to match the look of the WordPress "Pixl" theme by Automattic (GPL v2 or later), whose sizes, spacing and colors it follows.
+
+The history was slimmed before the first push. In every commit, the stab binding designer's gallery photos (at most 1200px wide), title image and `edgesbook.pdf` are smaller copies of the originals, and files no page loads were left out: the paper doll designer's Closure library and Blockly demos, tests and sample server, and the color picker's spare copies of p5. Every author, date and message is unchanged, but each commit has a new hash, so a hash from the old repos won't match. The full-size photos and the original PDF are still in the original `stab-bindings-designer` repo.
