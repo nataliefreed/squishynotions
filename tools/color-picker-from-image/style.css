@@ -1,0 +1,54 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Open Sans', sans-serif;
+}
+
+canvas {
+  display: block;
+}
+
+div {
+  font-family: 'Open Sans', sans-serif;
+}
+
+input[type="file"],
+input[type="text"],
+button {
+  margin-bottom: 10px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 18px;
+}
+
+/* Color list container */
+#colorList {
+  overflow: auto;
+  width: 180px;
+  height: 600px; /* Subtracting for other elements and spacing */
+  border: 1px solid black;
+/*   margin-bottom: 10px; */
+}
+
+/* Color circle in the list */
+.colorCircle {
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 5px;
+  margin-left: 5px;
+  top: 7px;
+}
+
+/* Hex label in the list */
+.hexLabel {
+  display: inline;
+  vertical-align: middle;
+}
+
+/* Copied notification styling */
+#copiedNotification {
+  color: green;
+  display: none;
+}
