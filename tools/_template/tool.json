@@ -1,0 +1,7 @@
+{
+  "title": "{{title}}",
+  "description": "Say in one line what someone can do with this.",
+  "tags": ["experiment"],
+  "emoji": "✨",
+  "added": "{{added}}"
+}

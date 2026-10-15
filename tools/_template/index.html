@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; padding: 1rem; font: 1rem/1.5 system-ui, sans-serif; }
+    .back { display: inline-block; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../../">All tools</a>
+  <h1>{{title}}</h1>
+  <main id="app"></main>
+
+  <script>
+    // Every tool on this site shares one browser origin, so storage keys need this tool's
+    // folder name as a prefix. Use store.get / store.set instead of localStorage directly.
+    const store = {
+      get(key, fallback = null) {
+        try {
+          const raw = localStorage.getItem('{{slug}}:' + key);
+          return raw === null ? fallback : JSON.parse(raw);
+        } catch { return fallback; }
+      },
+      set(key, value) {
+        try { localStorage.setItem('{{slug}}:' + key, JSON.stringify(value)); }
+        catch { /* storage is full or blocked; the tool should still work */ }
+      },
+    };
+
+    document.getElementById('app').textContent = 'Start building here.';
+  </script>
+</body>
+</html>

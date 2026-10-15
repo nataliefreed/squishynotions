@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creative Tools</title>
+  <meta name="description" content="Small creative tools you can open and play with in the browser.">
+  <meta name="theme-color" content="#2a6b5f" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#12302b" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232a6b5f'/%3E%3Cpath d='M8 0v32M16 0v32M24 0v32M0 8h32M0 16h32M0 24h32' stroke='white' stroke-opacity='.3'/%3E%3Crect x='10' y='10' width='12' height='12' fill='%23ffdf3d'/%3E%3C/svg%3E">
+
+  <!-- Two Google Fonts. If they don't load, the system fonts in the stacks below take over,
+       so these two lines can be deleted without breaking anything. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gabarito:wght@600;800&family=Atkinson+Hyperlegible+Next:wght@400;700&display=swap">
+
+  <style>
+    /* The page is a self-healing cutting mat: green, ruled in a grid, with a heavier line
+       every four squares. Each tool is a sheet of paper laid on it. */
+    :root {
+      color-scheme: light dark;
+      --cell: 24px;
+      --mat: #2a6b5f;
+      --mat-line: rgb(255 255 255 / .13);
+      --mat-line-major: rgb(255 255 255 / .26);
+      --on-mat: #f2f8f4;
+      --paper: #fbfbf8;
+      --ink: #0f2e28;
+      --ink-soft: #3d5a53;
+      --marker: #ffdf3d;
+      --display: "Gabarito", "Avenir Next", "Trebuchet MS", system-ui, sans-serif;
+      --body: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --mat: #12302b;
+        --mat-line: rgb(255 255 255 / .07);
+        --mat-line-major: rgb(255 255 255 / .15);
+        --paper: #e8ebe5;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--on-mat);
+      font: 400 1rem/1.5 var(--body);
+      background-color: var(--mat);
+      background-image:
+        linear-gradient(var(--mat-line-major) 1px, transparent 1px),
+        linear-gradient(90deg, var(--mat-line-major) 1px, transparent 1px),
+        linear-gradient(var(--mat-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--mat-line) 1px, transparent 1px);
+      background-size:
+        calc(var(--cell) * 4) calc(var(--cell) * 4),
+        calc(var(--cell) * 4) calc(var(--cell) * 4),
+        var(--cell) var(--cell),
+        var(--cell) var(--cell);
+    }
+
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+    :focus-visible { outline: 3px solid var(--marker); outline-offset: 3px; }
+
+    .wrap { width: min(70rem, 100% - 2rem); margin-inline: auto; padding-block: 2.5rem 4rem; }
+
+    /* Header */
+    .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; }
+    h1 { margin: 0; font: 800 clamp(2.5rem, 8vw, 4.5rem)/.95 var(--display); letter-spacing: -.025em; }
+    .status { margin: .75rem 0 0; min-height: 1.5em; }
+    .linkish { padding: 0; margin-left: .5rem; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .linkish:hover { color: var(--marker); }
+
+    .random {
+      padding: .85rem 1.25rem; border: 0; border-radius: 8px;
+      background: var(--marker); color: var(--ink);
+      font: 800 1rem/1 var(--display); cursor: pointer;
+      box-shadow: 0 3px 0 rgb(0 0 0 / .35);
+    }
+    .random:hover { filter: brightness(1.06); }
+    .random:active { transform: translateY(2px); box-shadow: 0 1px 0 rgb(0 0 0 / .35); }
+    .random:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Search, sort, tags */
+    .controls { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+    .field input, .field select {
+      width: 100%; padding: .7rem .9rem; border: 2px solid var(--ink); border-radius: 8px;
+      background: var(--paper); color: var(--ink); font: 400 1rem/1.3 var(--body);
+    }
+    .field.search { flex: 1 1 12rem; max-width: 32rem; }
+    .field.sort { flex: 0 0 auto; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+    .tags:empty { display: none; }
+    .chip {
+      padding: .5rem .85rem; border: 1.5px solid rgb(255 255 255 / .65); border-radius: 999px;
+      background: transparent; color: var(--on-mat); font: 700 .9rem/1 var(--body); cursor: pointer;
+    }
+    .chip:hover { background: rgb(255 255 255 / .14); }
+    .chip .n { margin-left: .4em; font-weight: 400; opacity: .8; }
+    .chip[aria-pressed="true"] { background: var(--marker); border-color: var(--marker); color: var(--ink); }
+
+    /* Messages */
+    .notice, .empty {
+      max-width: 38rem; margin-top: 1.5rem; padding: 1rem 1.25rem;
+      background: var(--paper); color: var(--ink); border-radius: 3px;
+    }
+    .notice { border-left: 8px solid var(--marker); }
+    .notice h2, .empty h2 { margin: 0 0 .25rem; font: 800 1.25rem/1.2 var(--display); }
+    .notice p, .notice ul, .empty p { margin: .25rem 0 0; }
+    .notice ul { padding-left: 1.2rem; }
+    code { padding: .1em .35em; border-radius: 4px; background: rgb(15 46 40 / .1); font-size: .92em; }
+
+    /* Tool cards */
+    .grid {
+      list-style: none; margin: 2rem 0 0; padding: 0;
+      display: grid; gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    }
+    .card {
+      display: flex; flex-direction: column; height: 100%; overflow: hidden;
+      background: var(--paper); color: var(--ink); border-radius: 3px; text-decoration: none;
+      box-shadow: 0 1px 0 rgb(0 0 0 / .3), 0 14px 20px -12px rgb(0 20 15 / .75);
+    }
+    .thumb { aspect-ratio: 16 / 10; background: var(--tile, #e3e6df); overflow: hidden; }
+    .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+    /* Cards without a thumbnail get a sheet of colored graph paper with the tool's emoji or first letter. */
+    .tile {
+      display: grid; place-items: center; width: 100%; height: 100%;
+      background-color: var(--tile);
+      background-image:
+        linear-gradient(rgb(15 46 40 / .14) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(15 46 40 / .14) 1px, transparent 1px);
+      background-size: 16px 16px;
+      font: 800 3.5rem/1 var(--display); color: var(--ink);
+    }
+
+    .body { display: flex; flex: 1; flex-direction: column; gap: .5rem; padding: 1rem 1.1rem 1.15rem; }
+    .card h2 { margin: 0; font: 800 1.3rem/1.2 var(--display); letter-spacing: -.01em; }
+    .card h2 span { box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+    .card:hover h2 span, .card:focus-visible h2 span { background-image: linear-gradient(transparent 58%, var(--marker) 58%); }
+    .card p {
+      margin: 0; color: var(--ink-soft); font-size: .97rem; line-height: 1.45;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden;
+    }
+    .card-tags { display: flex; flex-wrap: wrap; gap: .35rem; margin: auto 0 0; padding: .35rem 0 0; list-style: none; }
+    .card-tags li { padding: .15rem .55rem; border: 1px solid rgb(15 46 40 / .35); border-radius: 999px; color: var(--ink-soft); font-size: .8rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1>Creative Tools</h1>
+        <p class="status" role="status"><span id="status-text"></span><button type="button" id="clear" class="linkish" hidden>Clear filters</button></p>
+      </div>
+      <button type="button" id="random" class="random" disabled>Random tool</button>
+    </header>
+
+    <div class="controls">
+      <label class="field search">
+        <span class="sr">Search tools</span>
+        <input id="q" type="search" placeholder="Search tools" autocomplete="off">
+      </label>
+      <label class="field sort">
+        <span class="sr">Sort order</span>
+        <select id="sort">
+          <option value="newest">Newest first</option>
+          <option value="az">A to Z</option>
+        </select>
+      </label>
+    </div>
+    <div id="tags" class="tags" role="group" aria-label="Filter by tag"></div>
+
+    <div id="notice" class="notice" hidden></div>
+    <div id="empty" class="empty" hidden><h2></h2><p></p></div>
+    <ul id="grid" class="grid"></ul>
+  </div>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const els = {
+      grid: $('#grid'), q: $('#q'), sort: $('#sort'), tags: $('#tags'), status: $('#status-text'),
+      clear: $('#clear'), random: $('#random'), empty: $('#empty'), notice: $('#notice'),
+    };
+
+    // Construction-paper colors for cards without a thumbnail. One is picked per tool from its folder name,
+    // so a tool keeps the same color every time.
+    const PAPER_COLORS = ['#ff9f8a', '#8ad4ff', '#c7b6ff', '#98e6bf', '#ffc58a', '#ffb3d1'];
+    function paperFor(slug) {
+      let h = 0;
+      for (const ch of slug) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+      return PAPER_COLORS[h % PAPER_COLORS.length];
+    }
+
+    let tools = [];
+    const tagCounts = new Map();
+    const state = { q: '', tags: new Set(), sort: 'newest' };
+
+    const plural = (n) => (n === 1 ? 'tool' : 'tools');
+
+    function showNotice(title, lines) {
+      const h = document.createElement('h2');
+      h.textContent = title;
+      els.notice.replaceChildren(h);
+      if (lines.length === 1) {
+        const p = document.createElement('p');
+        p.textContent = lines[0];
+        els.notice.append(p);
+      } else {
+        const ul = document.createElement('ul');
+        for (const line of lines) {
+          const li = document.createElement('li');
+          li.textContent = line;
+          ul.append(li);
+        }
+        els.notice.append(ul);
+      }
+      els.notice.hidden = false;
+    }
+
+    function makeCard(tool) {
+      const tile = () => {
+        const d = document.createElement('div');
+        d.className = 'tile';
+        d.style.setProperty('--tile', paperFor(tool.slug));
+        d.setAttribute('aria-hidden', 'true');
+        d.textContent = tool.emoji || [...tool.title][0].toUpperCase();
+        return d;
+      };
+
+      const thumb = document.createElement('div');
+      thumb.className = 'thumb';
+      if (tool.thumbnail) {
+        const img = new Image();
+        img.alt = '';
+        img.loading = 'lazy';
+        img.src = tool.thumbnail;
+        img.addEventListener('error', () => img.replaceWith(tile()));
+        thumb.append(img);
+      } else {
+        thumb.append(tile());
+      }
+
+      const title = document.createElement('h2');
+      const titleText = document.createElement('span');
+      titleText.textContent = tool.title;
+      title.append(titleText);
+
+      const description = document.createElement('p');
+      description.textContent = tool.description;
+
+      const body = document.createElement('div');
+      body.className = 'body';
+      body.append(title, description);
+
+      if (tool.tags.length) {
+        const list = document.createElement('ul');
+        list.className = 'card-tags';
+        for (const tag of tool.tags) {
+          const item = document.createElement('li');
+          item.textContent = tag;
+          list.append(item);
+        }
+        body.append(list);
+      }
+
+      const link = document.createElement('a');
+      link.className = 'card';
+      link.href = tool.href;
+      link.append(thumb, body);
+
+      const item = document.createElement('li');
+      item.append(link);
+      return item;
+    }
+
+    function buildTagChips() {
+      const ordered = [...tagCounts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+      for (const [tag, count] of ordered) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.dataset.tag = tag;
+        chip.setAttribute('aria-pressed', 'false');
+        chip.append(tag);
+        const n = document.createElement('span');
+        n.className = 'n';
+        n.textContent = count;
+        chip.append(n);
+        chip.addEventListener('click', () => {
+          if (!state.tags.delete(tag)) state.tags.add(tag);
+          render();
+        });
+        els.tags.append(chip);
+      }
+    }
+
+    function visibleTools() {
+      const terms = state.q.toLowerCase().split(/\s+/).filter(Boolean);
+      const list = tools.filter(
+        (t) => [...state.tags].every((tag) => t.tags.includes(tag)) && terms.every((w) => t.haystack.includes(w)),
+      );
+      return state.sort === 'az' ? list.sort((a, b) => a.title.localeCompare(b.title)) : list;
+    }
+
+    function readUrl() {
+      const params = new URLSearchParams(location.search);
+      state.q = params.get('q') ?? '';
+      state.sort = params.get('sort') === 'az' ? 'az' : 'newest';
+      for (const tag of params.getAll('tag')) if (tagCounts.has(tag)) state.tags.add(tag);
+      els.q.value = state.q;
+      els.sort.value = state.sort;
+    }
+
+    function writeUrl() {
+      const params = new URLSearchParams();
+      if (state.q) params.set('q', state.q);
+      for (const tag of state.tags) params.append('tag', tag);
+      if (state.sort !== 'newest') params.set('sort', state.sort);
+      const query = params.toString();
+      try {
+        history.replaceState(null, '', query ? `?${query}` : location.pathname);
+      } catch { /* some browsers block this for local files; the filters still work */ }
+    }
+
+    function render() {
+      const list = visibleTools();
+      const filtering = state.q.trim() !== '' || state.tags.size > 0;
+
+      els.grid.replaceChildren(...list.map((t) => t.card));
+      els.status.textContent = filtering
+        ? `${list.length} of ${tools.length} ${plural(tools.length)}`
+        : `${tools.length} ${plural(tools.length)}`;
+      els.clear.hidden = !filtering;
+      els.random.disabled = tools.length === 0;
+      for (const chip of els.tags.children) {
+        chip.setAttribute('aria-pressed', String(state.tags.has(chip.dataset.tag)));
+      }
+
+      const [heading, message] = els.empty.children;
+      els.empty.hidden = list.length > 0;
+      if (tools.length === 0) {
+        heading.textContent = 'No tools yet';
+        message.replaceChildren('Add one with ');
+        const code = document.createElement('code');
+        code.textContent = 'npm run new -- my-first-tool';
+        message.append(code, ', then reload this page.');
+      } else if (list.length === 0) {
+        heading.textContent = 'Nothing matches';
+        message.textContent = 'Try fewer words, or clear the filters.';
+      }
+      writeUrl();
+    }
+
+    function clearFilters() {
+      state.q = '';
+      state.tags.clear();
+      els.q.value = '';
+      render();
+    }
+
+    async function init() {
+      let data;
+      try {
+        const response = await fetch('tools.json', { cache: 'no-store' });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        data = await response.json();
+      } catch (err) {
+        showNotice(
+          "Couldn't load the tool list",
+          [location.protocol === 'file:'
+            ? 'This page has to be served, not opened as a file. Run npm start and open http://localhost:8000.'
+            : `tools.json is missing or unreadable (${err.message}). If this is the published site, re-run the Deploy workflow.`],
+        );
+        return;
+      }
+
+      tools = data.tools.map((tool) => ({
+        ...tool,
+        haystack: [tool.title, tool.description, tool.slug, ...tool.tags].join(' ').toLowerCase(),
+        card: makeCard(tool),
+      }));
+      for (const tool of tools) for (const tag of tool.tags) tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+      if (data.problems?.length) showNotice("Some tools aren't showing", data.problems);
+
+      buildTagChips();
+      readUrl();
+      render();
+    }
+
+    els.q.addEventListener('input', () => { state.q = els.q.value; render(); });
+    els.q.addEventListener('keydown', (e) => { if (e.key === 'Escape' && els.q.value) { state.q = ''; els.q.value = ''; render(); } });
+    els.sort.addEventListener('change', () => { state.sort = els.sort.value; render(); });
+    els.clear.addEventListener('click', clearFilters);
+    els.random.addEventListener('click', () => {
+      const pool = visibleTools();
+      const choices = pool.length ? pool : tools;
+      const pick = choices[Math.floor(Math.random() * choices.length)];
+      if (pick) location.href = pick.href;
+    });
+    addEventListener('keydown', (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName ?? '');
+      if (e.key === '/' && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); els.q.focus(); }
+    });
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Generated
+dist/
+
+# Dependencies (only for the rare tool that has its own build)
+node_modules/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
