@@ -1,0 +1,110 @@
+body {
+    /*background-color: #438CA1;*/
+    background-color: #C8EAF4;
+}
+
+.top-space {
+    margin-top:20px;
+}
+
+.button-vspace {
+    margin-top:10px;
+}
+
+.btn-group {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.btn-lg, .btn-group-lg>.btn {
+    /*padding: 15px 16px 13px;*/
+    /*line-height: 15px;*/
+}
+
+/*#cyarea {*/
+    /*background-color: #438CA1;*/
+    /*padding: 15px;*/
+/*}*/
+
+#cy {
+    width: 900px;
+    height: 225px;
+    /*position: absolute;*/
+    /*left: 0;*/
+    /*top: 200;*/
+    /*background-color: #127ba3;*/
+    background-color: #ffffff;
+    /*border-style: solid;*/
+    /*border-width: 2px;*/
+    /*border-color: #438CA1;*/
+    /*box-sizing: content-box;*/
+}
+
+#grid-canvas {
+    position: absolute;
+    /*background-color: #FFFF00;*/
+    z-index: 0;
+}
+
+.toolbar {
+    background-color: #C8EAF4;
+    /*border-style: solid;*/
+    /*border-width: 5px;*/
+    /*border-color: #000000;*/
+}
+
+#snapToGridLabel {
+    /*color: #ffffff;*/
+    margin-left:20px;
+}
+
+.info-box {
+    width: fit-content;
+    border-radius: 2px;
+    margin: 10px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: inherit;
+}
+
+.instructions {
+    background-color:#9AD1E0;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.legend {
+    border-color:#9AD1E0;
+    padding-top: 5px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.computed {
+    margin-left: 30px;
+    padding-top: 10px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    color: #022A35;
+    font-size: 20px;
+}
+
+#calculator {
+    background-color:white;
+    width: 900px;
+    padding: 10px;
+}
+
+input[type=number] {
+    text-align:right;
+    width: 80px;
+    font-weight: normal;
+}
+
+label {
+    font-weight: normal;
+}
