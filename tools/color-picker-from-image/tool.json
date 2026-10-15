@@ -1,0 +1,7 @@
+{
+  "title": "Color Picker from Image",
+  "description": "Upload an image, click to pick colors from it, and copy your palette as a list of hex codes.",
+  "tags": ["color", "images"],
+  "emoji": "🎨",
+  "added": "2024-03-19"
+}
