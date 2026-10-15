@@ -1,5 +1,5 @@
 // A tiny dev server with no dependencies.
-//   node scripts/serve.mjs          serves the repo; the gallery's list is rebuilt on every request
+//   node scripts/serve.mjs          serves the repo as it is; the gallery's list (tools/tools.json) is rebuilt on every request
 //   node scripts/serve.mjs --dist   serves dist/, which is what GitHub Pages will serve
 import { createServer } from 'node:http';
 import { existsSync } from 'node:fs';
@@ -50,7 +50,7 @@ createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const pathname = decodeURIComponent(url.pathname);
 
-    if (!useDist && pathname === '/tools.json') {
+    if (!useDist && pathname === '/tools/tools.json') {
       const { tools, problems } = await collectTools();
       return send(res, 200, types['.json'], JSON.stringify({ ...toManifest(tools), problems }));
     }
@@ -74,5 +74,5 @@ createServer(async (req, res) => {
     send(res, 500, types['.txt'], String(err));
   }
 }).listen(port, host, () => {
-  console.log(`${useDist ? 'Built site' : 'Gallery'} running at http://${host === '0.0.0.0' ? 'localhost' : host}:${port}/`);
+  console.log(`${useDist ? 'Built site' : 'Site'} running at http://${host === '0.0.0.0' ? 'localhost' : host}:${port}/`);
 });

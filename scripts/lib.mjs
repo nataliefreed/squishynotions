@@ -84,7 +84,7 @@ export async function collectTools() {
   return { tools, problems };
 }
 
-/** What the gallery fetches as tools.json. Newest first; tools without a date sort A to Z after the dated ones. */
+/** What the gallery (tools/index.html) fetches as tools/tools.json. Newest first; tools without a date sort A to Z after the dated ones. */
 export function toManifest(tools) {
   const sorted = [...tools].sort(
     (a, b) => (b.added ?? '').localeCompare(a.added ?? '') || a.title.localeCompare(b.title),
@@ -97,8 +97,8 @@ export function toManifest(tools) {
       tags: t.tags,
       emoji: t.emoji,
       added: t.added,
-      href: `tools/${t.slug}/`,
-      thumbnail: t.thumbnailFile ? encodeURI(`tools/${t.slug}/${t.thumbnailFile}`) : null,
+      href: `${t.slug}/`,                                                  // relative to the gallery, which is tools/index.html
+      thumbnail: t.thumbnailFile ? encodeURI(`${t.slug}/${t.thumbnailFile}`) : null,
     })),
   };
 }

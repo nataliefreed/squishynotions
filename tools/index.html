@@ -71,6 +71,9 @@
     .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; }
     h1 { margin: 0; font: 800 clamp(2.5rem, 8vw, 4.5rem)/.95 var(--display); letter-spacing: -.025em; }
     .status { margin: .75rem 0 0; min-height: 1.5em; }
+    .site-link { margin: 0 0 1.25rem; }
+    .site-link a { color: inherit; text-underline-offset: 3px; }
+    .site-link a:hover { color: var(--marker); }
     .linkish { padding: 0; margin-left: .5rem; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
     .linkish:hover { color: var(--marker); }
 
@@ -153,6 +156,8 @@
 </head>
 <body>
   <div class="wrap">
+    <p class="site-link"><a href="../">&larr; Squishy Notions</a></p>
+
     <header class="top">
       <div>
         <h1>Creative Tools</h1>

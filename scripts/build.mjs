@@ -1,7 +1,7 @@
-// Assembles the deployable site in dist/: the gallery, every tool, and tools.json.
-// Plain tools are copied as they are. A tool whose own package.json has a "build"
-// script is installed and built first, and its output folder is what gets published.
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+// Assembles the deployable site in dist/: the pages, assets/, the tools gallery, every tool,
+// and tools/tools.json. Plain tools are copied as they are. A tool whose own package.json has
+// a "build" script is installed and built first, and its output folder is what gets published.
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -59,10 +59,27 @@ for (const tool of tools) {
   if (!existsSync(join(dest, 'index.html'))) die(`tools/${tool.slug}: there's no index.html in what would be published.`);
 }
 
-await cp(join(root, 'index.html'), join(dist, 'index.html'));
-if (existsSync(join(root, 'shared'))) {
-  await cp(join(root, 'shared'), join(dist, 'shared'), { recursive: true, filter: copyFilter });
-}
-await writeFile(join(dist, 'tools.json'), JSON.stringify(toManifest(tools), null, 2));
+// The gallery page and its list of tools.
+if (!existsSync(join(root, 'tools', 'index.html'))) die('tools/index.html (the gallery) is missing.');
+await cp(join(root, 'tools', 'index.html'), join(dist, 'tools', 'index.html'));
+await writeFile(join(dist, 'tools', 'tools.json'), JSON.stringify(toManifest(tools), null, 2));
 
-console.log(`Built ${tools.length} tool${tools.length === 1 ? '' : 's'} into dist/`);
+// The rest of the site: index.html, every top-level folder that has an index.html (try-me/,
+// goodies/, ...), assets/, and the few single files a site might have. Everything else in the
+// repo (scripts/, docs, config, node_modules/) stays out.
+const singleFiles = new Set(['index.html', '404.html', 'robots.txt', 'favicon.ico', 'CNAME']);
+const skipFolders = new Set(['tools', 'scripts', 'dist', 'node_modules']);
+const pages = [];
+for (const entry of await readdir(root, { withFileTypes: true })) {
+  const { name } = entry;
+  if (name.startsWith('.')) continue;
+  const publish = entry.isDirectory()
+    ? !skipFolders.has(name) && (name === 'assets' || existsSync(join(root, name, 'index.html')))
+    : singleFiles.has(name);
+  if (!publish) continue;
+  await cp(join(root, name), join(dist, name), { recursive: true, filter: copyFilter });
+  if (entry.isDirectory() && name !== 'assets') pages.push(name);
+}
+if (!existsSync(join(dist, 'index.html'))) die('index.html (the home page) is missing.');
+
+console.log(`Built the site into dist/: ${pages.length + 1} pages and ${tools.length} tool${tools.length === 1 ? '' : 's'}`);
