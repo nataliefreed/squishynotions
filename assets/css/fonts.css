@@ -1,0 +1,8 @@
+/* Fonts used by the Pixl theme. The files are in ../fonts/ */
+@font-face{font-family:"DM Mono";font-style:normal;font-weight:300;font-display:block;src:url('../fonts/DMMono-Light.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"DM Mono";font-style:italic;font-weight:300;font-display:block;src:url('../fonts/DMMono-LightItalic.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"DM Mono";font-style:normal;font-weight:400;font-display:block;src:url('../fonts/DMMono-Regular.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"DM Mono";font-style:italic;font-weight:400;font-display:block;src:url('../fonts/DMMono-Italic.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"DM Mono";font-style:normal;font-weight:500;font-display:block;src:url('../fonts/DMMono-Medium.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"DM Mono";font-style:italic;font-weight:500;font-display:block;src:url('../fonts/DMMono-MediumItalic.ttf') format('truetype');font-stretch:normal;}
+@font-face{font-family:"uni 05_53";font-style:normal;font-weight:400;font-display:block;src:url('../fonts/uni05_53.ttf') format('truetype');font-stretch:normal;}

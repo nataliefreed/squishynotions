@@ -1,0 +1,12 @@
+{
+  "name": "squishynotions-site",
+  "private": true,
+  "type": "module",
+  "description": "The Squishy Notions website, as plain static pages for GitHub Pages.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node scripts/serve.mjs"
+  }
+}
