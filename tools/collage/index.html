@@ -1,10 +1,15 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}</style>
 <title>Image Collage Maker</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Caveat:wght@400;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Fredoka:wght@400;600&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Lora:ital,wght@0,400..700;1,400..700&family=Oswald:wght@400;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&display=swap">
 <style>
-  /* Layout: toolbar across the top, a light gray workspace in the middle with the letter sheet centered on it,
-     key hints along the bottom. */
+  /* Layout: one slim toolbar, a light gray workspace with the sheet filling it, popovers for help, page settings and
+     download options. A print sheet (hidden on screen) lets File > Print output only the collage. */
   :root {
     --mat: #dcdfe3;
     --chrome: #f7f7f8;
@@ -16,42 +21,33 @@
     --accent: #1a5fd1;
     --accent-hover: #1450b3;
     --accent-fg: #ffffff;
-    /* the sheet of paper is white in every theme */
+    --accent-soft: rgba(26, 95, 209, 0.10);
+    --guide: #d6246e;
     --paper-ink: #1d2125;
     --paper-muted: #67707a;
     --paper-line: #c8ccd2;
+    --shadow: 0 8px 28px rgba(10, 20, 30, 0.22);
     --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
     --font-ui: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --sheet-w: 8.5in;
+    --sheet-h: 11in;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --mat: #202327;
-      --chrome: #181a1d;
-      --chrome-line: #32363b;
-      --btn: #25282c;
-      --btn-hover: #2f3338;
-      --fg: #e8eaed;
-      --fg-muted: #9fa6ae;
-      --accent: #5b9bff;
-      --accent-hover: #7db0ff;
-      --accent-fg: #08162e;
+      --mat: #202327; --chrome: #181a1d; --chrome-line: #32363b; --btn: #25282c; --btn-hover: #2f3338;
+      --fg: #e8eaed; --fg-muted: #9fa6ae; --accent: #5b9bff; --accent-hover: #7db0ff; --accent-fg: #08162e;
+      --accent-soft: rgba(91, 155, 255, 0.18); --shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --mat: #202327;
-    --chrome: #181a1d;
-    --chrome-line: #32363b;
-    --btn: #25282c;
-    --btn-hover: #2f3338;
-    --fg: #e8eaed;
-    --fg-muted: #9fa6ae;
-    --accent: #5b9bff;
-    --accent-hover: #7db0ff;
-    --accent-fg: #08162e;
+    --mat: #202327; --chrome: #181a1d; --chrome-line: #32363b; --btn: #25282c; --btn-hover: #2f3338;
+    --fg: #e8eaed; --fg-muted: #9fa6ae; --accent: #5b9bff; --accent-hover: #7db0ff; --accent-fg: #08162e;
+    --accent-soft: rgba(91, 155, 255, 0.18); --shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
     color-scheme: dark;
   }
 
+  [hidden] { display: none !important; }
   html, body { height: 100%; }
   body {
     display: flex;
@@ -66,191 +62,340 @@
   }
 
   /* toolbar */
-  .bar {
+  .top {
+    position: relative;
+    z-index: 10;
     flex: none;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
     background: var(--chrome);
     border-bottom: 1px solid var(--chrome-line);
   }
-  .brand {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 18px;
-    letter-spacing: -0.01em;
-    margin-right: 6px;
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    padding: 6px max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px));
   }
-  .group { display: flex; gap: 6px; }
+  .group { display: flex; align-items: center; gap: 4px; }
   .spacer { flex: 1 1 0; min-width: 0; }
-  .spec {
+  .tool-label {
     color: var(--fg-muted);
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
     white-space: nowrap;
   }
+  .set { display: flex; align-items: center; gap: 6px; }
   .btn {
     appearance: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    height: 38px;
-    padding: 0 13px;
+    gap: 6px;
+    height: 32px;
+    padding: 0 11px;
     border: 1px solid var(--chrome-line);
     border-radius: 6px;
     background: var(--btn);
     color: var(--fg);
-    font: 500 14px var(--font-ui);
+    font: 500 13px var(--font-ui);
+    white-space: nowrap;
     cursor: pointer;
-    transition: background-color 0.12s;
+    transition: background-color 0.12s, border-color 0.12s;
   }
-  .btn:hover:not(:disabled) { background: var(--btn-hover); }
-  .btn:disabled { opacity: 0.4; cursor: default; }
-  .btn:focus-visible, .empty:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .btn svg { width: 18px; height: 18px; flex: none; }
-  .btn.icon { width: 38px; padding: 0; }
+  .btn:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--btn-hover); }
+  .btn:disabled, .btn[aria-disabled="true"] { opacity: 0.4; cursor: default; }
+  .btn:focus-visible, .empty:focus-visible, .swatch:focus-visible, .menu-item:focus-visible, .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn svg { width: 17px; height: 17px; flex: none; }
+  .btn.icon { width: 32px; padding: 0; }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
   .btn.primary:hover:not(:disabled) { background: var(--accent-hover); }
-  .btn.primary svg { width: 20px; height: 20px; stroke-width: 2.6; }
+  .btn.primary svg { width: 19px; height: 19px; stroke-width: 2.6; }
+  .btn.toggle[aria-pressed="true"], .btn.open { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .btn.toggle[aria-pressed="true"]:hover:not(:disabled) { background: var(--accent-soft); }
+  select.btn { appearance: auto; padding: 0 6px; }
+  .split { display: inline-flex; }
+  .split .btn:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .split .btn:last-child { width: 26px; padding: 0; border-left-width: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+  .split .btn:last-child svg { width: 14px; height: 14px; }
+
+  /* popovers: page settings, help, download menu */
+  .pop {
+    position: fixed;
+    z-index: 30;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 70px);
+    overflow: auto;
+    padding: 14px;
+    border: 1px solid var(--chrome-line);
+    border-radius: 10px;
+    background: var(--chrome);
+    box-shadow: var(--shadow);
+    font-size: 13px;
+  }
+  .pop[hidden] { display: none; }
+  .pop h2 { margin: 0 0 8px; font: 700 13px var(--font-ui); letter-spacing: 0.01em; }
+  .pop .row { margin-bottom: 14px; }
+  .pop .row:last-child { margin-bottom: 0; }
+  .pop .note { margin: 6px 0 0; color: var(--fg-muted); font-size: 12px; line-height: 1.45; }
+  .seg { display: flex; border: 1px solid var(--chrome-line); border-radius: 7px; overflow: hidden; }
+  .seg button {
+    appearance: none; flex: 1 1 0; padding: 7px 12px; border: 0; border-left: 1px solid var(--chrome-line);
+    background: var(--btn); color: var(--fg); font: 500 13px var(--font-ui); cursor: pointer; text-align: center;
+  }
+  .seg button:first-child { border-left: 0; }
+  .seg button small { display: block; color: var(--fg-muted); font-size: 11.5px; font-weight: 400; }
+  .seg button[aria-checked="true"] { background: var(--accent-soft); color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .seg button[aria-checked="true"] small { color: var(--accent); }
+  .menu { padding: 6px; min-width: 250px; }
+  .menu-item {
+    appearance: none; display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0;
+    border-radius: 6px; background: transparent; color: var(--fg); font: 500 13px var(--font-ui); text-align: left; cursor: pointer;
+  }
+  .menu-item:hover { background: var(--btn-hover); }
+  .menu-item svg { width: 18px; height: 18px; flex: none; }
+  .menu-item small { display: block; color: var(--fg-muted); font-size: 11.5px; font-weight: 400; }
+  #pagePop { width: 300px; }
+  .help { width: 520px; }
+  .help dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0 0 12px; align-items: baseline; }
+  .help dt { white-space: nowrap; }
+  .help dd { margin: 0; color: var(--fg-muted); }
+  .help h3 { margin: 12px 0 6px; color: var(--fg-muted); font: 600 10.5px var(--font-ui); letter-spacing: 0.07em; text-transform: uppercase; }
+  .help h3:first-of-type { margin-top: 0; }
+  kbd {
+    display: inline-block; min-width: 1.5em; margin-right: 2px; padding: 0 5px; border: 1px solid var(--chrome-line);
+    border-bottom-width: 2px; border-radius: 4px; background: var(--btn); color: var(--fg); font: 500 11px var(--font-ui); text-align: center;
+  }
 
   /* workspace */
-  .stage { position: relative; flex: 1 1 auto; min-height: 300px; overflow: hidden; }
+  .stage { position: relative; flex: 1 1 auto; min-height: 260px; overflow: hidden; }
   .stage.dragging { box-shadow: inset 0 0 0 3px var(--accent); }
-  .mat {
-    position: absolute;
-    inset: 0;
-    background-color: var(--mat);
-  }
-  .host {
-    position: absolute;
-    inset: 0;
-    padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
-  }
+  .mat { position: absolute; inset: 0; background-color: var(--mat); }
+  .host { position: absolute; inset: 0; }
   .box { position: relative; width: 100%; height: 100%; }
   .box canvas { display: block; position: absolute; left: 0; top: 0; z-index: 1; touch-action: none; }
-
-  .page-overlay {
-    position: absolute;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
+  .page-overlay { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; pointer-events: none; }
   .empty {
-    pointer-events: auto;
-    appearance: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    width: 280px;
-    max-width: 84%;
-    padding: 26px 18px;
-    border: 2px dashed var(--paper-line);
-    border-radius: 10px;
-    background: transparent;
-    color: var(--paper-ink);
-    font-family: var(--font-ui);
-    text-align: center;
-    cursor: pointer;
+    pointer-events: auto; appearance: none; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    width: 280px; max-width: 84%; padding: 26px 18px; border: 2px dashed var(--paper-line); border-radius: 10px;
+    background: transparent; color: var(--paper-ink); font-family: var(--font-ui); text-align: center; cursor: pointer;
     transition: border-color 0.12s, color 0.12s;
   }
   .empty:hover { border-color: var(--accent); }
-  .empty-plus {
-    display: grid;
-    place-items: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: var(--accent-fg);
-  }
+  .empty-plus { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); }
   .empty-plus svg { width: 26px; height: 26px; stroke-width: 2.6; }
   .empty-title { font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; margin-top: 6px; }
   .empty-sub { font-size: 13px; color: var(--paper-muted); }
 
+  /* in-place text editing */
+  .editor {
+    position: absolute; z-index: 4; margin: 0; border: 0; outline: 1.5px dashed var(--accent); outline-offset: 1px;
+    background: transparent; resize: none; overflow: hidden; white-space: pre; -webkit-user-select: text; user-select: text;
+    caret-color: var(--accent);
+  }
+  .editor[hidden] { display: none; }
+
+  /* floating text style bar */
+  .textbar {
+    position: absolute; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: calc(100% - 8px);
+    padding: 6px; border: 1px solid var(--chrome-line); border-radius: 9px; background: var(--chrome); box-shadow: var(--shadow);
+  }
+  .textbar[hidden] { display: none; }
+  .textbar select.btn { max-width: 150px; }
+  .stepper { display: flex; align-items: center; }
+  .stepper .btn { width: 28px; padding: 0; font-size: 16px; line-height: 1; }
+  .stepper .btn:first-child { border-radius: 6px 0 0 6px; }
+  .stepper .btn:last-child { border-radius: 0 6px 6px 0; }
+  .stepper input {
+    width: 46px; height: 32px; box-sizing: border-box; border: 1px solid var(--chrome-line); border-left: 0; border-right: 0;
+    background: var(--btn); color: var(--fg); font: 500 13px var(--font-ui); text-align: center; -moz-appearance: textfield; appearance: textfield;
+  }
+  .stepper input::-webkit-outer-spin-button, .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .swatches { display: flex; align-items: center; gap: 4px; }
+  .swatch {
+    appearance: none; width: 20px; height: 20px; padding: 0; border: 1px solid rgba(128, 128, 128, 0.55); border-radius: 50%; cursor: pointer;
+  }
+  .swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--chrome), 0 0 0 4px var(--accent); }
+  .swatch.custom { background: conic-gradient(#e53935, #fdd835, #43a047, #1e88e5, #8e24aa, #e53935); position: relative; overflow: hidden; }
+  .swatch.custom input { position: absolute; inset: -6px; width: 40px; height: 40px; opacity: 0; cursor: pointer; }
+  .bi { font-weight: 700; font-family: Georgia, serif; font-size: 15px; }
+
   .toast {
-    position: absolute;
-    left: 50%;
-    bottom: 16px;
-    transform: translate(-50%, 8px);
-    z-index: 3;
-    max-width: calc(100% - 32px);
-    padding: 9px 14px;
-    border-radius: 6px;
-    background: var(--fg);
-    color: var(--chrome);
-    font-size: 13px;
-    font-weight: 500;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.18s, transform 0.18s;
+    position: absolute; left: 50%; bottom: 14px; transform: translate(-50%, 8px); z-index: 6; max-width: calc(100% - 32px);
+    padding: 9px 14px; border-radius: 6px; background: var(--fg); color: var(--chrome); font-size: 13px; font-weight: 500;
+    opacity: 0; pointer-events: none; transition: opacity 0.18s, transform 0.18s;
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
-
-  /* key hints */
-  .foot {
-    flex: none;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px 18px;
-    padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px));
-    background: var(--chrome);
-    border-top: 1px solid var(--chrome-line);
-    color: var(--fg-muted);
-    font-size: 12px;
+  .sel-info {
+    position: absolute; left: 10px; bottom: 8px; z-index: 3; padding: 3px 9px; border-radius: 99px; pointer-events: none;
+    background: color-mix(in srgb, var(--chrome) 85%, transparent); color: var(--fg-muted); font-size: 12px; font-variant-numeric: tabular-nums;
   }
-  kbd {
-    display: inline-block;
-    min-width: 1.5em;
-    margin-right: 2px;
-    padding: 0 5px;
-    border: 1px solid var(--chrome-line);
-    border-bottom-width: 2px;
-    border-radius: 4px;
-    background: var(--btn);
-    color: var(--fg);
-    font: 500 11px var(--font-ui);
-    text-align: center;
-  }
+  .sel-info:empty { display: none; }
+  .help-fab { position: absolute; right: 10px; bottom: 8px; z-index: 3; box-shadow: 0 1px 4px rgba(10, 20, 30, 0.18); }
 
-  @media (max-width: 760px) { .spec { display: none; } }
-  @media (max-width: 520px) { .brand { display: none; } }
-  @media (prefers-reduced-motion: reduce) {
-    .btn, .empty, .toast { transition: none; }
+  /* print: only the collage page */
+  #printSheet { display: none; }
+
+  @media (max-width: 1180px) { .tool-label { display: none; } }
+  @media (max-width: 720px) { .hide-sm { display: none; } .sel-info { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .btn, .empty, .toast { transition: none; } }
+  @media print {
+    html, body { height: auto !important; margin: 0 !important; background: #fff !important; overflow: hidden; }
+    .top, .stage, .pop, #fileInput { display: none !important; }
+    #printSheet { display: block; width: var(--sheet-w); height: calc(var(--sheet-h) - 0.02in); overflow: hidden; break-inside: avoid; }
+    #printSheet canvas { display: block; width: 100%; height: 100%; }
   }
 </style>
 
-<header class="bar">
-  <span class="brand">Collage</span>
-  <div class="group">
-    <button id="addBtn" class="btn primary" type="button" aria-label="Add image" title="Add images">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Add image</span>
-    </button>
+</head>
+<body>
+<div class="top">
+  <div class="bar" role="toolbar" aria-label="Collage tools">
+    <div class="group">
+      <button id="addBtn" class="btn primary icon" type="button" aria-label="Add image" title="Add images">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button id="textBtn" class="btn icon" type="button" aria-label="Add text" title="Add a text box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6V4h14v2"/><path d="M12 4v16"/><path d="M9 20h6"/></svg>
+      </button>
+    </div>
+    <div class="group" role="group" aria-label="Edit">
+      <button id="undoBtn" class="btn icon" type="button" aria-label="Undo" title="Undo" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+      </button>
+      <button id="redoBtn" class="btn icon" type="button" aria-label="Redo" title="Redo" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+      </button>
+      <button id="dupBtn" class="btn icon" type="button" aria-label="Duplicate selected" title="Duplicate" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>
+      </button>
+      <button id="delBtn" class="btn icon" type="button" aria-label="Delete selected" title="Delete selected (Delete key)" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>
+    <div class="set">
+      <span class="tool-label">Align</span>
+      <div class="group" role="group" aria-label="Align">
+        <button class="btn icon" type="button" data-align="left" aria-label="Align left" title="Align left" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 3v18"/><rect x="7" y="6" width="13" height="4" rx="1" fill="currentColor" stroke="none"/><rect x="7" y="14" width="8" height="4" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="btn icon" type="button" data-align="center" aria-label="Align center" title="Align center" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v18"/><rect x="5" y="6" width="14" height="4" rx="1" fill="currentColor" stroke="none"/><rect x="8" y="14" width="8" height="4" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="btn icon" type="button" data-align="right" aria-label="Align right" title="Align right" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 3v18"/><rect x="4" y="6" width="13" height="4" rx="1" fill="currentColor" stroke="none"/><rect x="9" y="14" width="8" height="4" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="btn icon" type="button" data-align="top" aria-label="Align top" title="Align top" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 4h18"/><rect x="6" y="7" width="4" height="13" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="7" width="4" height="8" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="btn icon" type="button" data-align="middle" aria-label="Align middle" title="Align middle" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h18"/><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="8" width="4" height="8" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="btn icon" type="button" data-align="bottom" aria-label="Align bottom" title="Align bottom" aria-disabled="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 20h18"/><rect x="6" y="4" width="4" height="13" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="9" width="4" height="8" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="set">
+      <span class="tool-label">Space evenly</span>
+      <div class="group" role="group" aria-label="Space evenly">
+        <button class="btn icon" type="button" data-dist="h" aria-disabled="true" aria-label="Space evenly across" title="Space evenly across. Keeps the leftmost and rightmost items where they are and evens out the gaps between them. Select 3 or more.">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 3v18M20 3v18"/><rect x="9" y="7" width="6" height="10" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+        <button class="btn icon" type="button" data-dist="v" aria-disabled="true" aria-label="Space evenly down" title="Space evenly down. Keeps the top and bottom items where they are and evens out the gaps between them. Select 3 or more.">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 4h18M3 20h18"/><rect x="7" y="9" width="10" height="6" rx="1" fill="currentColor" stroke="none"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="set">
+      <button id="snapObj" class="btn toggle" type="button" aria-pressed="true" title="Snap to other items and the page edges and center, and to equal spacing">Object Snap</button>
+      <button id="snapGrid" class="btn toggle" type="button" aria-pressed="false" title="Show a grid and snap to it">Grid Snap</button>
+      <select id="gridSize" class="btn" aria-label="Grid size" title="Grid size" disabled></select>
+    </div>
+    <div class="spacer"></div>
+    <div class="group">
+      <button id="pageBtn" class="btn" type="button" aria-haspopup="dialog" aria-expanded="false" title="Paper size and units">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+        <span id="pageLabel">Letter</span>
+      </button>
+      <div class="split">
+        <button id="dlBtn" class="btn" type="button" aria-label="Download PNG" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+          <span id="dlLabel" class="hide-sm">Download</span>
+        </button>
+        <button id="dlMenuBtn" class="btn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="More download options" title="PDF and other formats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
-  <div class="group" role="group" aria-label="Edit">
-    <button id="undoBtn" class="btn icon" type="button" aria-label="Undo" title="Undo" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-    </button>
-    <button id="redoBtn" class="btn icon" type="button" aria-label="Redo" title="Redo" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
-    </button>
-    <button id="delBtn" class="btn icon" type="button" aria-label="Delete selected image" title="Delete selected image (Delete key)" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></svg>
-    </button>
+</div>
+
+<div class="pop" id="pagePop" role="dialog" aria-label="Paper size and units" hidden>
+  <div class="row">
+    <h2>Paper size</h2>
+    <div class="seg" role="radiogroup" aria-label="Paper size">
+      <button type="button" role="radio" data-page="letter" aria-checked="true">US Letter<small>8.5 × 11 in</small></button>
+      <button type="button" role="radio" data-page="a4" aria-checked="false">A4<small>210 × 297 mm</small></button>
+    </div>
+    <p class="note" id="pageNote"></p>
   </div>
-  <div class="spacer"></div>
-  <span class="spec">Letter, 8.5 × 11 in · exports 2550 × 3300 px</span>
-  <button id="dlBtn" class="btn" type="button" aria-label="Download PNG" disabled>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
-    <span id="dlLabel">Download PNG</span>
+  <div class="row">
+    <h2>Units for the grid and spacing</h2>
+    <div class="seg" role="radiogroup" aria-label="Units">
+      <button type="button" role="radio" data-units="in" aria-checked="true">Inches</button>
+      <button type="button" role="radio" data-units="cm" aria-checked="false">Centimeters</button>
+    </div>
+  </div>
+</div>
+
+<div class="pop menu" id="dlPop" role="menu" aria-label="Download options" hidden>
+  <button class="menu-item" type="button" role="menuitem" data-act="png">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+    <span>PNG image</span>
   </button>
-</header>
+  <button class="menu-item" type="button" role="menuitem" data-act="pdf">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+    <span>PDF</span>
+  </button>
+</div>
+
+<div class="pop help" id="helpPop" role="dialog" aria-label="Shortcuts and tips" hidden>
+  <h2>Shortcuts and tips</h2>
+  <h3>Move and select</h3>
+  <dl>
+    <dt>Drag</dt><dd>Move an item. Items snap to the page and to each other.</dd>
+    <dt><kbd>Shift</kbd> drag</dt><dd>Keep the move in one direction</dd>
+    <dt><kbd class="mod">Ctrl</kbd> drag</dt><dd>Hold while dragging to skip snapping</dd>
+    <dt><kbd>Shift</kbd> click</dt><dd>Add or remove an item from the selection</dd>
+    <dt>Drag a box</dt><dd>Select everything the box touches</dd>
+    <dt>Arrow keys</dt><dd>Nudge a little (<kbd>Shift</kbd> = a lot)</dd>
+    <dt><kbd class="mod">Ctrl</kbd><kbd>A</kbd></dt><dd>Select all</dd>
+  </dl>
+  <h3>Copy and arrange</h3>
+  <dl>
+    <dt><kbd class="alt">Alt</kbd> drag</dt><dd>Drag a copy and leave the original behind</dd>
+    <dt><kbd class="mod">Ctrl</kbd><kbd>D</kbd></dt><dd>Duplicate</dd>
+    <dt><kbd class="mod">Ctrl</kbd><kbd>C</kbd> <kbd class="mod">Ctrl</kbd><kbd>V</kbd></dt><dd>Copy and paste</dd>
+    <dt><kbd>Delete</kbd></dt><dd>Remove the selection</dd>
+    <dt><kbd class="mod">Ctrl</kbd><kbd>Z</kbd></dt><dd>Undo (add <kbd>Shift</kbd> to redo)</dd>
+  </dl>
+  <h3>Resize and rotate</h3>
+  <dl>
+    <dt>Corner handles</dt><dd>Resize one item or a whole group. On text this changes the font size.</dd>
+    <dt>Round handle</dt><dd>Rotate one item or a whole group. <kbd>Shift</kbd> = 15° steps.</dd>
+  </dl>
+  <h3>Print</h3>
+  <dl>
+    <dt>File → Print</dt><dd>Prints just the page, at the paper size you picked. Use <b>PDF</b> in the download menu if printing is blocked.</dd>
+  </dl>
+  <h3>Text</h3>
+  <dl>
+    <dt>Double-click</dt><dd>Edit a text box (or press <kbd>Enter</kbd>)</dd>
+    <dt><kbd>Esc</kbd></dt><dd>Finish editing</dd>
+  </dl>
+</div>
 
 <input id="fileInput" type="file" accept="image/*" multiple hidden>
 
@@ -265,64 +410,165 @@
           <span class="empty-sub">Drag and drop, paste, or click to upload</span>
         </button>
       </div>
+      <textarea id="editor" class="editor" hidden spellcheck="false" aria-label="Text" wrap="off"></textarea>
+      <div class="textbar" id="textBar" role="toolbar" aria-label="Text style" hidden>
+        <select id="fontSel" class="btn" aria-label="Font" title="Font"></select>
+        <div class="stepper" role="group" aria-label="Font size in points">
+          <button id="fsDown" class="btn" type="button" aria-label="Smaller text" title="Smaller">−</button>
+          <input id="fsInput" type="number" min="6" max="400" step="1" inputmode="decimal" aria-label="Font size in points" title="Font size (pt)">
+          <button id="fsUp" class="btn" type="button" aria-label="Larger text" title="Larger">+</button>
+        </div>
+        <div class="swatches" id="swatches" role="group" aria-label="Text color"></div>
+        <button id="boldBtn" class="btn icon toggle" type="button" aria-pressed="false" aria-label="Bold" title="Bold"><span class="bi">B</span></button>
+        <button id="italicBtn" class="btn icon toggle" type="button" aria-pressed="false" aria-label="Italic" title="Italic"><span class="bi" style="font-style:italic">I</span></button>
+        <div class="group" role="group" aria-label="Text alignment">
+          <button class="btn icon toggle" type="button" data-talign="left" aria-pressed="false" aria-label="Align text left" title="Align text left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg></button>
+          <button class="btn icon toggle" type="button" data-talign="center" aria-pressed="false" aria-label="Center text" title="Center text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg></button>
+          <button class="btn icon toggle" type="button" data-talign="right" aria-pressed="false" aria-label="Align text right" title="Align text right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M10 10h10M4 14h16M10 18h10"/></svg></button>
+        </div>
+      </div>
     </div>
   </div>
+  <button id="helpBtn" class="btn icon help-fab" type="button" aria-haspopup="dialog" aria-expanded="false" aria-label="Shortcuts and tips" title="Shortcuts and tips (?)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
+      </button>
+  <div class="sel-info" id="selInfo" aria-live="polite"></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </main>
 
-<footer class="foot">
-  <span>Drag an image to move it</span>
-  <span>Square corners resize</span>
-  <span>Round handle rotates, <kbd>Shift</kbd> snaps to 15°</span>
-  <span><kbd>Delete</kbd> removes</span>
-  <span><kbd class="mod">Ctrl</kbd><kbd>Z</kbd> undo, <kbd class="mod">Ctrl</kbd><kbd>Shift</kbd><kbd>Z</kbd> redo</span>
-</footer>
+<div id="printSheet" aria-hidden="true"><canvas id="printCanvas" width="1" height="1"></canvas></div>
+<style id="pageRule">@page { size: 8.5in 11in; margin: 0; }</style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
 <script>
 (() => {
   'use strict';
-
   // ---- constants -------------------------------------------------------
-  const PAGE_W = 850, PAGE_H = 1100;      // US Letter at 100 units per inch
-  const EXPORT_SCALE = 3;                 // 2550 x 3300 px, 300 dpi
-  const MAX_IMG_DIM = 2400;               // longest side kept in memory per photo
-  const INSERT_MAX = 440;                 // starting size of a new photo, in page units
+  // The sheet is measured in "page units": 100 per inch, so Letter is 850 x 1100 and A4 is 826.8 x 1169.3.
+  const PAGES = {
+    letter: { id: 'letter', label: 'Letter', w: 850, h: 1100, pdf: [612, 792], css: '8.5in 11in', dim: '8.5 × 11 in', cssW: '8.5in', cssH: '11in' },
+    a4: { id: 'a4', label: 'A4', w: 210 / 25.4 * 100, h: 297 / 25.4 * 100, pdf: [595.28, 841.89], css: '210mm 297mm', dim: '210 × 297 mm', cssW: '210mm', cssH: '297mm' }
+  };
+  const UNIT_U = { in: 100, cm: 100 / 2.54 };           // page units in one inch / one centimeter
+  const GRIDS = {
+    in: [12.5, 25, 50, 100].map((u) => ({ u, label: u === 12.5 ? '1/8 in' : u === 25 ? '1/4 in' : u === 50 ? '1/2 in' : '1 in' })),
+    cm: [0.5, 1, 2, 5].map((c) => ({ u: c * 100 / 2.54, label: c + ' cm' }))
+  };
+  const EXPORT_SCALE = 3;                 // 300 dpi
+  const MAX_IMG_DIM = 2400;               // longest side kept in memory per image
+  const INSERT_MAX = 440;                 // starting size of a new image, in page units
   const MIN_SIZE = 24, MAX_SIZE = 3200;
+  const PT = 0.72;                        // one point is 0.72 page units, so 12 pt text has fs 16.7
+  const MIN_FS = 6 / PT, MAX_FS = 400 / PT;
+  const LINE_H = 1.22, PAD_X = 0.22, PAD_Y = 0.1;   // text box layout, as multiples of the font size
   const HISTORY_LIMIT = 200;
-  const SNAP = Math.PI / 12;              // 15 degrees
+  const ROT_STEP = Math.PI / 12;          // 15 degrees
+  const ROT_PULL = 3 * Math.PI / 180;     // rotation is pulled to a 15 degree step within 3 degrees
   const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
   const coarse = window.matchMedia('(pointer: coarse)').matches;
   const HANDLE = coarse ? 18 : 11;        // handle sizes and hit radii are in screen px
   const HIT = coarse ? 24 : 14;
   const ROT_OFFSET = coarse ? 38 : 30;
+  const SNAP_PX = coarse ? 12 : 7;        // how close (screen px) an edge must be to snap
+  const DRAG_PX = 4;                      // movement before a press becomes a drag
+  const DUP_OFFSET = 25;                  // duplicates and pastes land a quarter inch away
+  const NUDGE = 5, NUDGE_BIG = 25;        // arrow key steps in page units
+  const GUIDE_EPS = 0.5;
+  const MIN_GAP = 1;                      // gaps smaller than this don't count for equal spacing
+  const DBL_MS = 380;                     // two taps this close make a double-click
+  const CORNER_CURSORS = ['nwse-resize', 'nesw-resize', 'nwse-resize', 'nesw-resize'];   // same order as CORNERS
+  const PREF_KEY = 'image-collage-maker.snap';
+  const FONTS = [
+    { name: 'Instrument Sans', css: "'Instrument Sans', system-ui, sans-serif" },
+    { name: 'Bricolage Grotesque', css: "'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif" },
+    { name: 'Lora', css: "'Lora', Georgia, serif" },
+    { name: 'Playfair Display', css: "'Playfair Display', Georgia, serif" },
+    { name: 'Oswald', css: "'Oswald', 'Arial Narrow', sans-serif" },
+    { name: 'Fredoka', css: "'Fredoka', 'Trebuchet MS', sans-serif" },
+    { name: 'Caveat', css: "'Caveat', 'Comic Sans MS', cursive" },
+    { name: 'Courier Prime', css: "'Courier Prime', 'Courier New', monospace" },
+    { name: 'Arial', css: 'Arial, Helvetica, sans-serif' },
+    { name: 'Georgia', css: 'Georgia, serif' },
+    { name: 'Times New Roman', css: "'Times New Roman', Times, serif" }
+  ];
+  const SWATCHES = ['#1d2125', '#ffffff', '#d93025', '#f29900', '#188038', '#1a5fd1', '#8e24aa'];
 
   // ---- state -----------------------------------------------------------
-  let items = [];                         // bottom to top: {id, img, x, y, w, h, rot}
-  let selectedId = null;
+  let items = [];                         // bottom to top: {id, kind, x, y, w, h, rot, ...image or text fields}
+  let selection = new Set();              // ids of selected items
   let nextId = 1;
   let undoStack = [], redoStack = [];
   let gesture = null;
+  let guides = { x: [], y: [], gaps: [] };   // alignment lines and equal-gap markers shown while snapped
+  let marquee = null;                     // selection box in page units
+  let clipboard = [], pasteN = 1, copiedAt = -Infinity;
+  let live = { key: '', at: 0 };          // a run of the same kind of edit (arrow keys, font size) is one undo step
+  let tipShown = false;
+  let pageId = 'letter', pageW = PAGES.letter.w, pageH = PAGES.letter.h;
+  let units = 'in';
+  let editing = null;                     // {id, before, isNew} while a text box is open for typing
+  let lastTap = { t: 0, x: 0, y: 0, id: 0 };
   let view = { s: 1, ox: 0, oy: 0, w: 1, h: 1 };
   let sketch = null, canvasEl = null, ready = false, raf = 0, exporting = false;
+  const snap = { objects: true, grid: false, size: 25 };
+  const textDefaults = { font: 'Instrument Sans', fs: 24 / PT, color: '#1d2125', bold: false, italic: false, align: 'center' };
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(PREF_KEY) || 'null');
+    if (saved && typeof saved === 'object') {
+      if (typeof saved.objects === 'boolean') snap.objects = saved.objects;
+      if (typeof saved.grid === 'boolean') snap.grid = saved.grid;
+      if (saved.units === 'in' || saved.units === 'cm') units = saved.units;
+      if (typeof saved.size === 'number' && GRIDS[units].some((g) => Math.abs(g.u - saved.size) < 0.01)) snap.size = saved.size;
+      else snap.size = GRIDS[units][1].u;
+      if (PAGES[saved.page]) { pageId = saved.page; pageW = PAGES[pageId].w; pageH = PAGES[pageId].h; }
+      const t = saved.text;
+      if (t && typeof t === 'object') {
+        if (FONTS.some((f) => f.name === t.font)) textDefaults.font = t.font;
+        if (typeof t.fs === 'number' && t.fs >= MIN_FS && t.fs <= MAX_FS) textDefaults.fs = t.fs;
+        if (typeof t.color === 'string' && /^#[0-9a-f]{6}$/i.test(t.color)) textDefaults.color = t.color;
+        if (typeof t.bold === 'boolean') textDefaults.bold = t.bold;
+        if (typeof t.italic === 'boolean') textDefaults.italic = t.italic;
+        if (['left', 'center', 'right'].includes(t.align)) textDefaults.align = t.align;
+      }
+    }
+  } catch (err) { /* storage can be blocked; the defaults are fine */ }
+  function savePrefs() {
+    try { localStorage.setItem(PREF_KEY, JSON.stringify({ ...snap, units, page: pageId, text: textDefaults })); } catch (err) { /* ignore */ }
+  }
 
   const $ = (id) => document.getElementById(id);
   const els = {
     stage: $('stage'), box: $('box'), overlay: $('pageOverlay'), file: $('fileInput'),
-    add: $('addBtn'), emptyAdd: $('emptyAdd'), undo: $('undoBtn'), redo: $('redoBtn'),
-    del: $('delBtn'), dl: $('dlBtn'), dlLabel: $('dlLabel'), toast: $('toast')
+    add: $('addBtn'), textBtn: $('textBtn'), emptyAdd: $('emptyAdd'), undo: $('undoBtn'), redo: $('redoBtn'),
+    dup: $('dupBtn'), del: $('delBtn'), dl: $('dlBtn'), dlLabel: $('dlLabel'), dlMenuBtn: $('dlMenuBtn'), toast: $('toast'),
+    snapObj: $('snapObj'), snapGrid: $('snapGrid'), gridSize: $('gridSize'), info: $('selInfo'),
+    pageBtn: $('pageBtn'), pageLabel: $('pageLabel'), helpBtn: $('helpBtn'),
+    pagePop: $('pagePop'), dlPop: $('dlPop'), helpPop: $('helpPop'), pageNote: $('pageNote'),
+    editor: $('editor'), textBar: $('textBar'), fontSel: $('fontSel'), fsInput: $('fsInput'), fsDown: $('fsDown'), fsUp: $('fsUp'),
+    swatches: $('swatches'), bold: $('boldBtn'), italic: $('italicBtn'),
+    printCanvas: $('printCanvas'), pageRule: $('pageRule'),
+    alignBtns: Array.from(document.querySelectorAll('[data-align]')),
+    distBtns: Array.from(document.querySelectorAll('[data-dist]')),
+    talignBtns: Array.from(document.querySelectorAll('[data-talign]')),
+    pageOpts: Array.from(document.querySelectorAll('[data-page]')),
+    unitOpts: Array.from(document.querySelectorAll('[data-units]'))
   };
 
   const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
   const modName = isMac ? '⌘' : 'Ctrl';
   document.querySelectorAll('.mod').forEach((k) => { k.textContent = modName; });
+  document.querySelectorAll('.alt').forEach((k) => { k.textContent = isMac ? 'Option' : 'Alt'; });
   els.undo.title = 'Undo (' + modName + '+Z)';
   els.redo.title = 'Redo (' + modName + '+Shift+Z)';
+  els.dup.title = 'Duplicate (' + modName + '+D)';
 
   // ---- helpers ---------------------------------------------------------
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const byId = (id) => items.find((it) => it.id === id) || null;
-  const getSelected = () => byId(selectedId);
+  const isText = (it) => !!it && it.kind === 'text';
+  const selItems = () => items.filter((it) => selection.has(it.id));   // in stacking order
+  const single = () => (selection.size === 1 ? byId(selection.values().next().value) : null);
   const place = (cx, cy, rot, lx, ly) => {
     const c = Math.cos(rot), s = Math.sin(rot);
     return { x: cx + lx * c - ly * s, y: cy + lx * s + ly * c };
@@ -335,13 +581,37 @@
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
   const wrapAngle = (a) => ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
   const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#1a5fd1';
+  const isTyping = (t) => !!t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable);
+  const skipSnapKey = (e) => e.ctrlKey || e.metaKey;      // hold while dragging to turn snapping off
+
+  // the box around an item once it is rotated, in page units
+  function bounds(it) {
+    const cs = Math.abs(Math.cos(it.rot)), sn = Math.abs(Math.sin(it.rot));
+    const hw = (it.w * cs + it.h * sn) / 2, hh = (it.w * sn + it.h * cs) / 2;
+    return { l: it.x - hw, r: it.x + hw, t: it.y - hh, b: it.y + hh };
+  }
+  function unionBounds(list) {
+    let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+    for (const it of list) {
+      const q = bounds(it);
+      l = Math.min(l, q.l); t = Math.min(t, q.t); r = Math.max(r, q.r); b = Math.max(b, q.b);
+    }
+    return { l, t, r, b };
+  }
+  const clearGuides = () => { guides = { x: [], y: [], gaps: [] }; };
+
+  // lengths shown to the person, in the unit they chose
+  function fmtLen(u) {
+    return units === 'cm' ? (u / UNIT_U.cm).toFixed(1) + ' cm' : (u / UNIT_U.in).toFixed(2) + ' in';
+  }
+  const exportSize = () => ({ W: Math.round(pageW * EXPORT_SCALE), H: Math.round(pageH * EXPORT_SCALE) });
 
   let toastTimer = 0;
   function toast(msg) {
     els.toast.textContent = msg;
     els.toast.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => els.toast.classList.remove('show'), 3200);
+    toastTimer = setTimeout(() => els.toast.classList.remove('show'), 3400);
   }
 
   function invalidate() {
@@ -349,54 +619,143 @@
     raf = requestAnimationFrame(() => { raf = 0; if (ready) sketch.redraw(); });
   }
 
-  function updateUI() {
-    els.undo.disabled = !undoStack.length;
-    els.redo.disabled = !redoStack.length;
-    els.del.disabled = !selectedId;
-    els.dl.disabled = !items.length || exporting;
-    els.overlay.hidden = items.length > 0;
-  }
-
   // ---- history ---------------------------------------------------------
-  const copyItem = ({ id, img, x, y, w, h, rot }) => ({ id, img, x, y, w, h, rot });
-  const snapshot = () => items.map(copyItem);
+  // A snapshot is the paper size plus every item. Images share their pixels; only the numbers are copied.
+  const copyItem = (it) => ({ ...it });
+  const STATE_KEYS = ['id', 'x', 'y', 'w', 'h', 'rot', 'text', 'font', 'fs', 'color', 'bold', 'italic', 'align'];
+  const snapshot = () => ({ page: pageId, items: items.map(copyItem) });
+  // Same paper and the same items with the same numbers. Only a change of stacking order doesn't count, so
+  // clicking an item to select it (which brings it to the front) isn't an undo step.
   function sameState(a, b) {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i++) {
-      const p = a[i], q = b[i];
-      if (p.id !== q.id || p.x !== q.x || p.y !== q.y || p.w !== q.w || p.h !== q.h || p.rot !== q.rot) return false;
+    if (a.page !== b.page || a.items.length !== b.items.length) return false;
+    const other = new Map(b.items.map((q) => [q.id, q]));
+    for (const p of a.items) {
+      const q = other.get(p.id);
+      if (!q) return false;
+      for (const k of STATE_KEYS) if (p[k] !== q[k]) return false;
     }
     return true;
   }
+  const unchanged = (before) => sameState(before, snapshot());
   function pushHistory(before) {
     undoStack.push(before);
     if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
     redoStack = [];
+    live = { key: '', at: 0 };
     updateUI();
   }
+  function commit(before) {
+    if (unchanged(before)) return false;
+    pushHistory(before);
+    return true;
+  }
   function restore(state) {
-    items = state.map(copyItem);
-    if (selectedId && !byId(selectedId)) selectedId = null;
+    items = state.items.map(copyItem);
+    if (state.page !== pageId) applyPage(state.page);
+    selection = new Set(Array.from(selection).filter((id) => byId(id)));
     updateUI();
     invalidate();
   }
   function undo() {
+    finishEditing();
     if (gesture || !undoStack.length) return;
+    live = { key: '', at: 0 };
     redoStack.push(snapshot());
     restore(undoStack.pop());
   }
   function redo() {
+    finishEditing();
     if (gesture || !redoStack.length) return;
+    live = { key: '', at: 0 };
     undoStack.push(snapshot());
     restore(redoStack.pop());
   }
 
+  // ---- interface state -------------------------------------------------
+  function buildGridOptions() {
+    els.gridSize.innerHTML = '';
+    for (const g of GRIDS[units]) {
+      const o = document.createElement('option');
+      o.value = String(g.u);
+      o.textContent = g.label;
+      els.gridSize.appendChild(o);
+    }
+    els.gridSize.value = String(snap.size);
+  }
+
+  function updateUI() {
+    const n = selection.size;
+    els.undo.disabled = !undoStack.length;
+    els.redo.disabled = !redoStack.length;
+    els.del.disabled = !n;
+    els.dup.disabled = !n;
+    els.alignBtns.forEach((b) => b.setAttribute('aria-disabled', String(n < 1)));
+    els.distBtns.forEach((b) => b.setAttribute('aria-disabled', String(n < 3)));
+    els.dl.disabled = !items.length || exporting;
+    els.dlMenuBtn.disabled = !items.length || exporting;
+    els.overlay.hidden = items.length > 0;
+    els.snapObj.setAttribute('aria-pressed', String(snap.objects));
+    els.snapGrid.setAttribute('aria-pressed', String(snap.grid));
+    els.gridSize.disabled = !snap.grid;
+    els.info.textContent = !items.length ? ''
+      : n === 0 ? 'Nothing selected'
+      : n === 1 ? '1 selected · aligns to the page'
+      : n + ' selected · aligns to each other';
+    const P = PAGES[pageId], px = exportSize();
+    els.pageLabel.textContent = P.label;
+    els.pageOpts.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.page === pageId)));
+    els.unitOpts.forEach((b) => b.setAttribute('aria-checked', String(b.dataset.units === units)));
+    els.pageNote.textContent = 'Exports ' + px.W + ' × ' + px.H + ' px (300 dpi).';
+    syncTextBar();
+  }
+
+  // The paper size: sets the sheet, the print rule and the layout. Items are not touched here.
+  function applyPage(id) {
+    const P = PAGES[id];
+    if (!P) return;
+    pageId = id; pageW = P.w; pageH = P.h;
+    document.documentElement.style.setProperty('--sheet-w', P.cssW);
+    document.documentElement.style.setProperty('--sheet-h', P.cssH);
+    els.pageRule.textContent = '@page { size: ' + P.css + '; margin: 0; }';
+    if (ready) layout();
+  }
+
+  // Switching paper: the layout is carried over, scaled so everything still fits.
+  function setPage(id) {
+    if (id === pageId || !PAGES[id]) return;
+    finishEditing();
+    const before = snapshot(), from = PAGES[pageId], to = PAGES[id];
+    const fx = to.w / from.w, fy = to.h / from.h, fk = Math.min(fx, fy);
+    applyPage(id);
+    for (const it of items) {
+      it.x *= fx; it.y *= fy; it.w *= fk; it.h *= fk;
+      if (isText(it)) it.fs *= fk;
+    }
+    pushHistory(before);
+    savePrefs();
+    if (items.length) toast('Switched to ' + to.label + '. Your layout was scaled to fit the new page.');
+    updateUI();
+    invalidate();
+  }
+
+  function setUnits(u) {
+    if (u === units || !GRIDS[u]) return;
+    const idx = GRIDS[units].findIndex((g) => Math.abs(g.u - snap.size) < 0.01);
+    units = u;
+    snap.size = GRIDS[u][Math.max(0, idx)].u;
+    buildGridOptions();
+    savePrefs();
+    updateUI();
+    invalidate();
+  }
+
   // ---- editing ---------------------------------------------------------
   function deleteSelected() {
-    if (!selectedId || gesture) return;
+    if (!selection.size || gesture) return;
+    finishEditing();
     const before = snapshot();
-    items = items.filter((it) => it.id !== selectedId);
-    selectedId = null;
+    items = items.filter((it) => !selection.has(it.id));
+    selection = new Set();
     pushHistory(before);
     invalidate();
   }
@@ -406,6 +765,275 @@
     if (i >= 0 && i < items.length - 1) { items.splice(i, 1); items.push(it); }
   }
 
+  // The most a group can move before an item's center would leave the sheet.
+  function clampDelta(list, dx, dy) {
+    let loX = -Infinity, hiX = Infinity, loY = -Infinity, hiY = Infinity;
+    for (const it of list) {
+      loX = Math.max(loX, -it.x); hiX = Math.min(hiX, pageW - it.x);
+      loY = Math.max(loY, -it.y); hiY = Math.min(hiY, pageH - it.y);
+    }
+    loX = Math.min(loX, 0); hiX = Math.max(hiX, 0);
+    loY = Math.min(loY, 0); hiY = Math.max(hiY, 0);
+    return { dx: clamp(dx, loX, hiX), dy: clamp(dy, loY, hiY) };
+  }
+
+  // Copies of `list`, shifted by `off` (or the other way when that would run off the sheet).
+  function placeClones(list, off) {
+    let dx = clampDelta(list, off, 0).dx, dy = clampDelta(list, 0, off).dy;
+    if (off && Math.abs(dx) < 1) dx = clampDelta(list, -off, 0).dx;
+    if (off && Math.abs(dy) < 1) dy = clampDelta(list, 0, -off).dy;
+    return list.map((it) => ({ ...copyItem(it), id: nextId++, x: it.x + dx, y: it.y + dy }));
+  }
+
+  function addClones(clones, before) {
+    items.push(...clones);
+    selection = new Set(clones.map((c) => c.id));
+    pushHistory(before);
+    invalidate();
+  }
+
+  function duplicateSelection() {
+    const list = selItems();
+    if (!list.length || gesture) return;
+    finishEditing();
+    const before = snapshot();
+    addClones(placeClones(list, DUP_OFFSET), before);
+  }
+
+  function copySelection(cut) {
+    const list = selItems();
+    if (!list.length || gesture) return false;
+    clipboard = list.map(copyItem);
+    pasteN = cut ? 0 : 1;
+    copiedAt = performance.now();
+    if (cut) deleteSelected();
+    return true;
+  }
+
+  function pasteClipboard() {
+    if (!clipboard.length || gesture) return false;
+    const before = snapshot();
+    addClones(placeClones(clipboard, DUP_OFFSET * pasteN), before);
+    pasteN++;
+    return true;
+  }
+
+  function nudge(dx, dy) {
+    const list = selItems();
+    if (!list.length || gesture) return;
+    const c = clampDelta(list, dx, dy);
+    if (!c.dx && !c.dy) return;
+    const now = performance.now();
+    if (!(live.key === 'nudge' && now - live.at < 800)) pushHistory(snapshot());   // a run of key presses is one undo step
+    list.forEach((it) => { it.x += c.dx; it.y += c.dy; });
+    live = { key: 'nudge', at: now };
+    updateUI();
+    invalidate();
+  }
+
+  // ---- align and distribute -------------------------------------------
+  function alignSelection(mode) {
+    const list = selItems();
+    if (!list.length || gesture) return;
+    const toPage = list.length === 1;
+    const ref = toPage ? { l: 0, t: 0, r: pageW, b: pageH } : unionBounds(list);
+    const before = snapshot();
+    for (const it of list) {
+      const q = bounds(it);
+      if (mode === 'left') it.x += ref.l - q.l;
+      else if (mode === 'center') it.x += (ref.l + ref.r) / 2 - (q.l + q.r) / 2;
+      else if (mode === 'right') it.x += ref.r - q.r;
+      else if (mode === 'top') it.y += ref.t - q.t;
+      else if (mode === 'middle') it.y += (ref.t + ref.b) / 2 - (q.t + q.b) / 2;
+      else if (mode === 'bottom') it.y += ref.b - q.b;
+    }
+    commit(before);
+    if (toPage && !tipShown) { tipShown = true; toast('Aligned to the page. Select two or more items to align them to each other.'); }
+    invalidate();
+  }
+
+  // Keeps the first and last item where they are and spaces the ones between so the gaps match.
+  function distribute(axis) {
+    const list = selItems();
+    if (list.length < 3 || gesture) return;
+    const horiz = axis === 'h', lo = horiz ? 'l' : 't', hi = horiz ? 'r' : 'b';
+    const rows = list.map((it) => ({ it, q: bounds(it) }));
+    rows.sort((p, q) => (p.q[lo] + p.q[hi]) - (q.q[lo] + q.q[hi]));
+    const first = rows[0].q, last = rows[rows.length - 1].q;
+    const total = rows.reduce((sum, r) => sum + (r.q[hi] - r.q[lo]), 0);
+    const gap = (last[hi] - first[lo] - total) / (rows.length - 1);
+    const before = snapshot();
+    let cursor = first[lo];
+    for (const r of rows) {
+      const shift = cursor - r.q[lo];
+      if (horiz) r.it.x += shift; else r.it.y += shift;
+      cursor += (r.q[hi] - r.q[lo]) + gap;
+    }
+    commit(before);
+    toast('The gaps between these ' + rows.length + ' items are now equal, ' + (horiz ? 'left to right.' : 'top to bottom.'));
+    invalidate();
+  }
+
+  // ---- snapping --------------------------------------------------------
+  // Lines other things can snap to: the sheet's edges and center, plus every other item's edges and center.
+  function snapTargets(exclude) {
+    const xs = [0, pageW / 2, pageW], ys = [0, pageH / 2, pageH];
+    for (const it of items) {
+      if (exclude.has(it.id)) continue;
+      const q = bounds(it);
+      xs.push(q.l, (q.l + q.r) / 2, q.r);
+      ys.push(q.t, (q.t + q.b) / 2, q.b);
+    }
+    return { xs, ys };
+  }
+  const othersBounds = (exclude) => items.filter((it) => !exclude.has(it.id)).map(bounds);
+
+  // The smallest shift that lines one of `cands` up with a target line or a grid line, if any is close enough.
+  function bestSnap(cands, targets, grid, tol) {
+    let best = null;
+    const consider = (d, t) => {
+      if (Math.abs(d) <= tol && (!best || Math.abs(d) < Math.abs(best.d) - 1e-9)) best = { d, t };
+    };
+    for (const c of cands) {
+      for (const t of targets) consider(t - c, t);
+      if (grid) consider(Math.round(c / grid) * grid - c, null);
+    }
+    return best;
+  }
+
+  // A dragged corner slides along one diagonal as the scale k changes. If its x or y passes close to a snap
+  // line (or grid line), this returns the k that puts it exactly on that line.
+  function snapScale(k, anchor, D, targets, skip) {
+    const none = { k, axis: null, t: 0, guide: false };
+    if (skip || !(snap.objects || snap.grid)) return none;
+    const tol = SNAP_PX / view.s;
+    let hit = null;
+    const tryAxis = (p, step, a0, lines, axis) => {
+      if (Math.abs(step) < 1e-6) return;
+      const cands = snap.objects ? lines.map((t) => ({ t, guide: true })) : [];
+      if (snap.grid) cands.push({ t: Math.round(p / snap.size) * snap.size, guide: false });
+      for (const c of cands) {
+        const d = Math.abs(c.t - p);
+        if (d <= tol && (!hit || d < hit.d)) hit = { d, k: (c.t - a0) / step, axis, t: c.t, guide: c.guide };
+      }
+    };
+    tryAxis(anchor.x + k * D.x, D.x, anchor.x, targets.xs, 'x');
+    tryAxis(anchor.y + k * D.y, D.y, anchor.y, targets.ys, 'y');
+    return hit ? { k: hit.k, axis: hit.axis, t: hit.t, guide: hit.guide } : none;
+  }
+
+  // Target lines that the candidates sit exactly on, for drawing guides.
+  function coincide(cands, targets) {
+    const out = [];
+    for (const t of targets) {
+      if (cands.some((c) => Math.abs(c - t) < GUIDE_EPS) && !out.some((o) => Math.abs(o - t) < GUIDE_EPS)) out.push(t);
+    }
+    return out;
+  }
+
+  // ---- equal spacing ---------------------------------------------------
+  // While dragging a box D, it snaps so the gap beside it matches a gap that already exists between two other
+  // items (sideways or up and down, anywhere on the page), or so it sits exactly midway between its two neighbors.
+  // D's neighbors are the nearest items in its own row (for left/right gaps) or column (for up/down gaps).
+  const AX = {
+    x: { lo: 'l', hi: 'r', plo: 't', phi: 'b' },
+    y: { lo: 't', hi: 'b', plo: 'l', phi: 'r' }
+  };
+  const centerOf = (q, a) => (q[a.lo] + q[a.hi]) / 2;
+  const overlap = (p, q, a) => Math.min(p[a.phi], q[a.phi]) - Math.max(p[a.plo], q[a.plo]);   // shared length across the other axis
+
+  // Every visible gap between two of the other items: they face each other with nothing between them.
+  function gapTemplates(others) {
+    const out = [];
+    for (const axis of ['x', 'y']) {
+      const a = AX[axis];
+      for (const p of others) {
+        for (const q of others) {
+          if (p === q) continue;
+          const g = q[a.lo] - p[a.hi];
+          if (g < MIN_GAP || overlap(p, q, a) < 1) continue;
+          const blocked = others.some((r) => r !== p && r !== q && r[a.lo] < q[a.lo] - 0.5 && r[a.hi] > p[a.hi] + 0.5 &&
+            Math.min(r[a.phi], p[a.phi], q[a.phi]) - Math.max(r[a.plo], p[a.plo], q[a.plo]) > 1);
+          if (!blocked) out.push({ axis, p, q, g });
+        }
+      }
+    }
+    return out;
+  }
+
+  // D's nearest neighbor on each side along `axis`, among the items it shares a row (or column) with
+  function neighbours(axis, D, others) {
+    const a = AX[axis], c = centerOf(D, a);
+    let L = null, R = null;
+    for (const q of others) {
+      if (q[a.phi] <= D[a.plo] + 0.5 || q[a.plo] >= D[a.phi] - 0.5) continue;      // not in D's row/column
+      const qc = centerOf(q, a);
+      if (qc < c) { if (!L || qc > centerOf(L, a)) L = q; }
+      else if (!R || qc < centerOf(R, a)) R = q;
+    }
+    return { L, R };
+  }
+  // the gap D would fill between L and R doesn't count as an example to copy
+  const usable = (t, axis, L, R) => !(L && R && t.axis === axis && t.p === L && t.q === R);
+
+  // Where D's low edge should go to make a gap equal, if that is within `tol` of where it is now.
+  function spacingSnap(axis, D, others, tol, templates) {
+    const a = AX[axis], size = D[a.hi] - D[a.lo];
+    const { L, R } = neighbours(axis, D, others);
+    if (!L && !R) return null;
+    const cands = [];
+    if (L && R && (R[a.lo] - L[a.hi] - size) / 2 >= MIN_GAP) cands.push((L[a.hi] + R[a.lo] - size) / 2);
+    const seen = [];
+    for (const t of templates) {
+      if (!usable(t, axis, L, R) || seen.some((v) => Math.abs(v - t.g) < 0.05)) continue;
+      seen.push(t.g);
+      if (L) cands.push(L[a.hi] + t.g);
+      if (R) cands.push(R[a.lo] - t.g - size);
+    }
+    let best = null;
+    for (const c of cands) {
+      const d = c - D[a.lo];
+      if (Math.abs(d) <= tol && (!best || Math.abs(d) < Math.abs(best.d))) best = { d };
+    }
+    return best;
+  }
+
+  // The equal gaps present at D's final position, as segments to draw: {axis, a, b, pos} (pos is the other coordinate).
+  function spacingMatches(axis, D, others, templates) {
+    const a = AX[axis], out = [];
+    const { L, R } = neighbours(axis, D, others);
+    const gl = L ? D[a.lo] - L[a.hi] : -1, gr = R ? R[a.lo] - D[a.hi] : -1;
+    const seg = (ax, A, B, withD) => {
+      const b = AX[ax];
+      let lo = Math.max(A[b.plo], B[b.plo]), hi = Math.min(A[b.phi], B[b.phi]);
+      if (withD) {
+        const l2 = Math.max(lo, D[b.plo]), h2 = Math.min(hi, D[b.phi]);
+        if (l2 < h2) { lo = l2; hi = h2; }
+        else if (!(lo < hi)) { lo = D[b.plo]; hi = D[b.phi]; }
+      }
+      return { axis: ax, a: A[b.hi], b: B[b.lo], pos: (lo + hi) / 2 };
+    };
+    const add = (s) => { if (!out.some((o) => o.axis === s.axis && Math.abs(o.a - s.a) < GUIDE_EPS && Math.abs(o.b - s.b) < GUIDE_EPS && Math.abs(o.pos - s.pos) < 1)) out.push(s); };
+    if (gl >= MIN_GAP && gr >= MIN_GAP && Math.abs(gl - gr) < GUIDE_EPS) { add(seg(axis, L, D, true)); add(seg(axis, D, R, true)); }
+    const cx = (D.l + D.r) / 2, cy = (D.t + D.b) / 2;
+    const near = [];
+    for (const t of templates) {
+      if (!usable(t, axis, L, R)) continue;
+      const hitL = gl >= MIN_GAP && Math.abs(t.g - gl) < GUIDE_EPS, hitR = gr >= MIN_GAP && Math.abs(t.g - gr) < GUIDE_EPS;
+      if (!hitL && !hitR) continue;
+      const mid = { x: (t.p.l + t.q.r) / 2, y: (t.p.t + t.q.b) / 2 };
+      near.push({ t, hitL, hitR, d: Math.hypot(mid.x - cx, mid.y - cy) });
+    }
+    near.sort((p, q) => p.d - q.d);
+    for (const n of near.slice(0, 4)) {                 // a grid has many equal gaps; show the closest few
+      if (n.hitL) add(seg(axis, L, D, true));
+      if (n.hitR) add(seg(axis, D, R, true));
+      add(seg(n.t.axis, n.t.p, n.t.q, false));
+    }
+    return out;
+  }
+
+  // ---- adding images ---------------------------------------------------
   function loadPhoto(file) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(file);
@@ -434,12 +1062,13 @@
   function makeItem(photo, n) {
     const k = Math.min(INSERT_MAX / photo.w, INSERT_MAX / photo.h);
     const off = ((n % 5) - 2) * 34;
-    return { id: nextId++, img: photo.img, x: PAGE_W / 2 + off, y: PAGE_H / 2 + off, w: photo.w * k, h: photo.h * k, rot: 0 };
+    return { id: nextId++, kind: 'image', img: photo.img, x: pageW / 2 + off, y: pageH / 2 + off, w: photo.w * k, h: photo.h * k, rot: 0 };
   }
 
   async function addFiles(fileList) {
     const files = Array.from(fileList || []).filter((f) => f.type && f.type.startsWith('image/'));
     if (!files.length) { toast('Choose an image file such as JPG, PNG or WebP.'); return; }
+    finishEditing();
     const photos = [];
     let failed = 0;
     for (const f of files) {
@@ -448,10 +1077,273 @@
     if (!photos.length) { toast("That image couldn't be opened. Try a JPG or PNG."); return; }
     const before = snapshot();
     photos.forEach((p) => items.push(makeItem(p, items.length)));
-    selectedId = items[items.length - 1].id;
+    selection = new Set([items[items.length - 1].id]);
     pushHistory(before);
     if (failed) toast(failed + (failed > 1 ? ' files' : ' file') + " couldn't be opened.");
     invalidate();
+  }
+
+  // ---- text boxes ------------------------------------------------------
+  // A text item is a box that fits its words: w and h come from the font, size and lines. Resizing it by a corner
+  // changes the font size, so it behaves like any other item when moved, rotated, aligned or snapped.
+  const fontStack = (name) => (FONTS.find((f) => f.name === name) || FONTS[0]).css;
+  const fontShorthand = (it, px) => (it.italic ? 'italic ' : '') + (it.bold ? '700 ' : '400 ') + px + 'px ' + fontStack(it.font);
+  const fmtPt = (fs) => String(Math.round(fs * PT * 10) / 10);
+  const measureCtx = document.createElement('canvas').getContext('2d');
+
+  function fitText(it) {
+    measureCtx.font = fontShorthand(it, it.fs);
+    const lines = it.text.split('\n');
+    let mw = 0;
+    for (const ln of lines) mw = Math.max(mw, measureCtx.measureText(ln).width);
+    mw = Math.max(mw, it.fs * 0.5);
+    it.w = mw + 2 * PAD_X * it.fs;
+    it.h = lines.length * LINE_H * it.fs + 2 * PAD_Y * it.fs;
+  }
+
+  // Web fonts load the first time they are asked for; measure again and redraw once they arrive.
+  const fontReq = new Set();
+  function ensureFont(it) {
+    const key = fontShorthand(it, 16);
+    if (fontReq.has(key) || !document.fonts || !document.fonts.load) return;
+    fontReq.add(key);
+    document.fonts.load(key, 'Aa').then(() => {
+      items.filter(isText).forEach(fitText);
+      if (editing) { const e = byId(editing.id); if (e) styleEditor(e); }
+      invalidate();
+    }).catch(() => {});
+  }
+  function fontsReady() {
+    if (!document.fonts || !document.fonts.load) return Promise.resolve();
+    const jobs = items.filter(isText).map((it) => document.fonts.load(fontShorthand(it, 16), it.text || 'Aa').catch(() => {}));
+    return Promise.all(jobs).then(() => { items.filter(isText).forEach(fitText); });
+  }
+
+  function drawText(g, it) {
+    if (editing && editing.id === it.id) return;          // the editor shows it while it is being typed
+    ensureFont(it);
+    const ctx = g.drawingContext, fs = it.fs;
+    g.push();
+    g.translate(it.x, it.y);
+    g.rotate(it.rot);
+    ctx.save();
+    ctx.font = fontShorthand(it, fs);
+    ctx.fillStyle = it.color;
+    ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = it.align;
+    const m = ctx.measureText('Mg');
+    const fa = m.fontBoundingBoxAscent || fs * 0.9, fd = m.fontBoundingBoxDescent || fs * 0.25;
+    const x = it.align === 'left' ? -it.w / 2 + PAD_X * fs : it.align === 'right' ? it.w / 2 - PAD_X * fs : 0;
+    it.text.split('\n').forEach((ln, i) => {
+      const top = -it.h / 2 + PAD_Y * fs + i * LINE_H * fs;
+      ctx.fillText(ln, x, top + (LINE_H * fs - (fa + fd)) / 2 + fa);   // same placement as a CSS line box
+    });
+    ctx.restore();
+    g.pop();
+  }
+
+  function makeTextItem(n) {
+    const d = textDefaults, off = ((n % 5) - 2) * 34;
+    const it = { id: nextId++, kind: 'text', text: 'Your text', font: d.font, fs: d.fs, color: d.color, bold: d.bold, italic: d.italic,
+                 align: d.align, x: pageW / 2 + off, y: pageH / 2 + off, w: 0, h: 0, rot: 0 };
+    fitText(it);
+    return it;
+  }
+
+  function addText() {
+    if (!ready || gesture) return;
+    finishEditing();
+    const before = snapshot();
+    const it = makeTextItem(items.length);
+    ensureFont(it);
+    items.push(it);
+    selection = new Set([it.id]);
+    startEditing(it, true, before);
+  }
+
+  // ---- typing in place -------------------------------------------------
+  function styleEditor(it) {
+    const s = view.s, fs = it.fs * s, st = els.editor.style;
+    st.left = (view.ox + (it.x - it.w / 2) * s) + 'px';
+    st.top = (view.oy + (it.y - it.h / 2) * s) + 'px';
+    st.width = (it.w * s) + 'px';
+    st.height = (it.h * s) + 'px';
+    st.transform = 'rotate(' + it.rot + 'rad)';
+    st.font = fontShorthand(it, fs);
+    st.lineHeight = (LINE_H * fs) + 'px';
+    st.color = it.color;
+    st.textAlign = it.align;
+    st.padding = (PAD_Y * fs) + 'px ' + (PAD_X * fs) + 'px';
+    st.boxSizing = 'border-box';
+  }
+
+  function startEditing(it, isNew, before) {
+    if (!isText(it) || !ready) return;
+    if (editing) finishEditing();
+    editing = { id: it.id, before: before || snapshot(), isNew: !!isNew };
+    selection = new Set([it.id]);
+    els.editor.value = it.text;
+    els.editor.hidden = false;
+    styleEditor(it);
+    updateUI();
+    invalidate();
+    els.editor.focus({ preventScroll: true });
+    if (isNew) els.editor.select(); else els.editor.setSelectionRange(it.text.length, it.text.length);
+  }
+
+  function finishEditing() {
+    if (!editing) return;
+    const e = editing;
+    editing = null;
+    els.editor.hidden = true;
+    const it = byId(e.id);
+    if (it && !it.text.trim()) {                          // an empty text box just goes away
+      items = items.filter((x) => x !== it);
+      selection.delete(it.id);
+    }
+    if (!unchanged(e.before)) pushHistory(e.before);
+    updateUI();
+    invalidate();
+  }
+
+  els.editor.addEventListener('input', () => {
+    const it = editing && byId(editing.id);
+    if (!it) return;
+    it.text = els.editor.value;
+    fitText(it);
+    styleEditor(it);
+    els.editor.scrollLeft = 0;
+    els.editor.scrollTop = 0;
+    positionTextBar();
+    invalidate();
+  });
+  els.editor.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); finishEditing(); }
+  });
+  els.editor.addEventListener('blur', () => setTimeout(() => {
+    if (!editing) return;
+    const ae = document.activeElement;
+    if (ae === els.editor || els.textBar.contains(ae)) return;   // moved to the text style bar: keep editing
+    finishEditing();
+  }, 0));
+
+  // ---- text style bar --------------------------------------------------
+  FONTS.forEach((f) => {
+    const o = document.createElement('option');
+    o.value = f.name;
+    o.textContent = f.name;
+    o.style.fontFamily = f.css;
+    els.fontSel.appendChild(o);
+  });
+  SWATCHES.forEach((c) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'swatch';
+    b.style.background = c;
+    b.dataset.color = c;
+    b.setAttribute('aria-label', 'Text color ' + c);
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => styleSelectedText({ color: c }, ''));
+    els.swatches.appendChild(b);
+  });
+  const customWrap = document.createElement('label');
+  customWrap.className = 'swatch custom';
+  customWrap.title = 'Any color';
+  const customInput = document.createElement('input');
+  customInput.type = 'color';
+  customInput.setAttribute('aria-label', 'Choose any text color');
+  customWrap.appendChild(customInput);
+  els.swatches.appendChild(customWrap);
+  customInput.addEventListener('input', () => styleSelectedText({ color: customInput.value }, 'color'));
+
+  function refocusEditor() { if (editing) els.editor.focus({ preventScroll: true }); }
+
+  function styleSelectedText(props, key) {
+    const list = selItems().filter(isText);
+    if (!list.length) return;
+    if (list.every((it) => Object.keys(props).every((k) => it[k] === props[k]))) return;
+    const before = snapshot();
+    for (const it of list) {
+      Object.assign(it, props);
+      it.fs = clamp(it.fs, MIN_FS, MAX_FS);
+      fitText(it);
+      ensureFont(it);
+    }
+    Object.assign(textDefaults, props);                   // new text boxes start with the latest choices
+    textDefaults.fs = clamp(textDefaults.fs, MIN_FS, MAX_FS);
+    savePrefs();
+    if (editing) {
+      const e = byId(editing.id);
+      if (e) styleEditor(e);                              // the whole edit session is one undo step
+    } else {
+      const now = performance.now();
+      if (!(key && live.key === key && now - live.at < 800)) pushHistory(before);
+      live = { key: key || '', at: now };
+    }
+    syncTextBar();
+    invalidate();
+  }
+
+  function bumpSize(dir) {
+    const it = selItems().find(isText);
+    if (!it) return;
+    const pt = Math.round(it.fs * PT * 10) / 10, step = pt < 24 ? 1 : pt < 72 ? 2 : 6;
+    const next = clamp(Math.round(pt) + dir * step, 6, 400);
+    styleSelectedText({ fs: next / PT }, 'size');
+  }
+
+  els.fontSel.addEventListener('change', () => { styleSelectedText({ font: els.fontSel.value }, ''); refocusEditor(); });
+  els.fsDown.addEventListener('click', () => { bumpSize(-1); refocusEditor(); });
+  els.fsUp.addEventListener('click', () => { bumpSize(1); refocusEditor(); });
+  els.fsInput.addEventListener('input', () => {
+    const v = parseFloat(els.fsInput.value);
+    if (isFinite(v) && v >= 6 && v <= 400) styleSelectedText({ fs: v / PT }, 'size');
+  });
+  els.fsInput.addEventListener('change', () => { syncTextBar(); });
+  els.fsInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); els.fsInput.blur(); refocusEditor(); }
+  });
+  els.bold.addEventListener('click', () => {
+    const it = selItems().find(isText);
+    if (it) styleSelectedText({ bold: !it.bold }, '');
+    refocusEditor();
+  });
+  els.italic.addEventListener('click', () => {
+    const it = selItems().find(isText);
+    if (it) styleSelectedText({ italic: !it.italic }, '');
+    refocusEditor();
+  });
+  els.talignBtns.forEach((b) => b.addEventListener('click', () => { styleSelectedText({ align: b.dataset.talign }, ''); refocusEditor(); }));
+
+  function syncTextBar() {
+    const list = selItems().filter(isText);
+    els.textBar.hidden = list.length === 0;
+    if (!list.length) return;
+    const it = list[0];
+    if (els.fontSel.value !== it.font) els.fontSel.value = it.font;
+    if (document.activeElement !== els.fsInput) els.fsInput.value = fmtPt(it.fs);
+    els.bold.setAttribute('aria-pressed', String(!!it.bold));
+    els.italic.setAttribute('aria-pressed', String(!!it.italic));
+    els.talignBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.talign === it.align)));
+    els.swatches.querySelectorAll('.swatch[data-color]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.color.toLowerCase() === (it.color || '').toLowerCase())));
+    if (/^#[0-9a-f]{6}$/i.test(it.color || '')) customInput.value = it.color;
+    positionTextBar();
+  }
+
+  // The bar floats just above the selected text (below it when there is no room above) and steps aside while dragging.
+  function positionTextBar() {
+    if (els.textBar.hidden) return;
+    const list = selItems();
+    if (!list.some(isText)) return;
+    const bar = els.textBar, hide = !!(gesture && gesture.moved && gesture.type !== 'marquee');
+    bar.style.visibility = hide ? 'hidden' : '';
+    const gb = unionBounds(list), s = view.s, bw = bar.offsetWidth, bh = bar.offsetHeight;
+    const gap = ROT_OFFSET + 18;
+    let y = view.oy + gb.t * s - bh - gap;
+    if (y < 4) y = view.oy + gb.b * s + gap;
+    if (y + bh > view.h - 4) y = Math.max(4, view.h - bh - 4);
+    bar.style.left = clamp(view.ox + (gb.l + gb.r) / 2 * s - bw / 2, 4, Math.max(4, view.w - bw - 4)) + 'px';
+    bar.style.top = y + 'px';
   }
 
   // ---- hit testing -----------------------------------------------------
@@ -466,15 +1358,42 @@
     }
     return null;
   }
+  // The round rotate handle normally sits above its box; near the top of the canvas it flips below so it stays reachable.
+  const inView = (p) => {
+    const sx = view.ox + p.x * view.s, sy = view.oy + p.y * view.s;
+    return sx > 10 && sx < view.w - 10 && sy > 10 && sy < view.h - 10;
+  };
+  function rotHandle(it) {
+    const off = ROT_OFFSET / view.s, up = toWorld(it, 0, -it.h / 2 - off);
+    if (inView(up)) return { side: -1, p: up };
+    const dn = toWorld(it, 0, it.h / 2 + off);
+    return inView(dn) ? { side: 1, p: dn } : { side: -1, p: up };
+  }
+  function groupRotHandle(gb) {
+    const off = ROT_OFFSET / view.s, mid = (gb.l + gb.r) / 2;
+    const up = { x: mid, y: gb.t - off };
+    if (inView(up)) return { side: -1, p: up };
+    const dn = { x: mid, y: gb.b + off };
+    return inView(dn) ? { side: 1, p: dn } : { side: -1, p: up };
+  }
   function hitHandle(it, pt) {
-    const inv = 1 / view.s, r = HIT * inv;
-    if (dist(toWorld(it, 0, -it.h / 2 - ROT_OFFSET * inv), pt) <= r) return { type: 'rotate' };
+    const r = HIT / view.s;
+    if (dist(rotHandle(it).p, pt) <= r) return { type: 'rotate' };
     for (let i = 0; i < 4; i++) {
       const c = toWorld(it, CORNERS[i][0] * it.w / 2, CORNERS[i][1] * it.h / 2);
       if (dist(c, pt) <= r) return { type: 'resize', corner: i };
     }
     return null;
   }
+  function hitGroupHandle(list, pt) {
+    const gb = unionBounds(list), r = HIT / view.s;
+    for (let i = 0; i < 4; i++) {
+      const c = { x: CORNERS[i][0] > 0 ? gb.r : gb.l, y: CORNERS[i][1] > 0 ? gb.b : gb.t };
+      if (dist(c, pt) <= r) return i;
+    }
+    return -1;
+  }
+  const hitGroupRotate = (list, pt) => dist(groupRotHandle(unionBounds(list)).p, pt) <= HIT / view.s;
   function resizeCursor(it, corner) {
     const a = Math.atan2(CORNERS[corner][1] * it.h / 2, CORNERS[corner][0] * it.w / 2) + it.rot;
     const d = ((a * 180 / Math.PI) % 180 + 180) % 180;
@@ -483,11 +1402,17 @@
     if (d < 112.5) return 'ns-resize';
     return 'nesw-resize';
   }
-  function hoverCursor(pt) {
-    const sel = getSelected(), h = sel && hitHandle(sel, pt);
+  function hoverCursor(pt, e) {
+    const sel = single(), h = sel && hitHandle(sel, pt);
     if (h && h.type === 'rotate') return 'grab';
     if (h && h.type === 'resize') return resizeCursor(sel, h.corner);
-    return hitItem(pt) ? 'move' : 'default';
+    if (selection.size > 1) {
+      const list = selItems();
+      if (hitGroupRotate(list, pt)) return 'grab';
+      const i = hitGroupHandle(list, pt);
+      if (i >= 0) return CORNER_CURSORS[i];
+    }
+    return hitItem(pt) ? (e && e.altKey ? 'copy' : 'move') : 'default';
   }
 
   // ---- pointer gestures ------------------------------------------------
@@ -495,61 +1420,247 @@
     if (gesture) return;
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     e.preventDefault();
-    const pt = pagePoint(e), before = snapshot(), sel = getSelected();
+    finishEditing();
+    const ae = document.activeElement;                  // so keys go to the page, not a button or the font menu
+    if (ae && ae !== document.body && ae.blur) ae.blur();
+    closePopovers();
+    const pt = pagePoint(e), before = snapshot(), sel = single();
     const h = sel && hitHandle(sel, pt);
+    const group = selection.size > 1 ? selItems() : null;
+    const gr = group && hitGroupRotate(group, pt);
+    const gh = group && !gr ? hitGroupHandle(group, pt) : -1;
+    const base = { before, pointerId: e.pointerId, cx: e.clientX, cy: e.clientY, moved: false };
     let g;
     if (h && h.type === 'rotate') {
-      g = { type: 'rotate', id: sel.id, startAngle: Math.atan2(pt.y - sel.y, pt.x - sel.x), startRot: sel.rot };
+      g = { ...base, type: 'rotate', id: sel.id, startAngle: Math.atan2(pt.y - sel.y, pt.x - sel.x), startRot: sel.rot };
       canvasEl.style.cursor = 'grabbing';
     } else if (h && h.type === 'resize') {
       const sx = CORNERS[h.corner][0], sy = CORNERS[h.corner][1];
-      g = { type: 'resize', id: sel.id, corner: h.corner, sx, sy, w0: sel.w, h0: sel.h, rot: sel.rot,
-            anchor: toWorld(sel, -sx * sel.w / 2, -sy * sel.h / 2) };
+      g = { ...base, type: 'resize', id: sel.id, corner: h.corner, sx, sy, w0: sel.w, h0: sel.h, fs0: sel.fs, rot: sel.rot,
+            anchor: toWorld(sel, -sx * sel.w / 2, -sy * sel.h / 2), targets: snapTargets(new Set([sel.id])) };
       canvasEl.style.cursor = resizeCursor(sel, h.corner);
+    } else if (gr) {
+      const gb = unionBounds(group), pivot = { x: (gb.l + gb.r) / 2, y: (gb.t + gb.b) / 2 };
+      g = { ...base, type: 'grotate', pivot, gb, delta: 0, startAngle: Math.atan2(pt.y - pivot.y, pt.x - pivot.x),
+            starts: group.map((it) => ({ id: it.id, x: it.x, y: it.y, rot: it.rot })) };
+      canvasEl.style.cursor = 'grabbing';
+    } else if (gh >= 0) {
+      const sx = CORNERS[gh][0], sy = CORNERS[gh][1], gb = unionBounds(group);
+      const anchor = { x: sx > 0 ? gb.l : gb.r, y: sy > 0 ? gb.t : gb.b };
+      const starts = group.map((it) => ({ id: it.id, x: it.x, y: it.y, w: it.w, h: it.h, fs: it.fs, text: isText(it) }));
+      // how far the group may scale: items keep a minimum and maximum size, and their centers stay on the sheet
+      let kMin = 0, kMax = Infinity;
+      for (const st of starts) {
+        kMin = Math.max(kMin, st.text ? MIN_FS / st.fs : MIN_SIZE / Math.min(st.w, st.h));
+        kMax = Math.min(kMax, MAX_SIZE / Math.max(st.w, st.h));
+        if (st.text) kMax = Math.min(kMax, MAX_FS / st.fs);
+        const ox = st.x - anchor.x, oy = st.y - anchor.y;
+        if (ox > 1e-6) kMax = Math.min(kMax, (pageW - anchor.x) / ox);
+        else if (ox < -1e-6) kMax = Math.min(kMax, anchor.x / -ox);
+        if (oy > 1e-6) kMax = Math.min(kMax, (pageH - anchor.y) / oy);
+        else if (oy < -1e-6) kMax = Math.min(kMax, anchor.y / -oy);
+      }
+      g = { ...base, type: 'gresize', sx, sy, gb, anchor, starts, kMin: Math.min(kMin, 1), kMax: Math.max(kMax, 1),
+            targets: snapTargets(selection) };
+      canvasEl.style.cursor = CORNER_CURSORS[gh];
     } else {
       const hit = hitItem(pt);
-      if (!hit) { selectedId = null; canvasEl.style.cursor = 'default'; updateUI(); invalidate(); return; }
-      selectedId = hit.id;
-      raise(hit);
-      g = { type: 'move', id: hit.id, startX: hit.x, startY: hit.y, px: pt.x, py: pt.y };
-      canvasEl.style.cursor = 'move';
+      const additive = e.shiftKey || e.metaKey;
+      if (!hit) {
+        if (!additive) selection = new Set();
+        marquee = { x0: pt.x, y0: pt.y, x1: pt.x, y1: pt.y };
+        g = { ...base, type: 'marquee', baseSel: new Set(selection) };
+      } else if (additive) {
+        if (selection.has(hit.id)) selection.delete(hit.id); else selection.add(hit.id);
+        updateUI();
+        invalidate();
+        return;
+      } else {
+        if (!selection.has(hit.id)) { selection = new Set([hit.id]); raise(hit); }
+        else if (selection.size === 1) raise(hit);
+        const list = selItems();
+        const others = othersBounds(selection);
+        g = { ...base, type: 'move', hitId: hit.id, px: pt.x, py: pt.y, bounds: unionBounds(list), dupDone: false,
+              starts: list.map((it) => ({ id: it.id, x: it.x, y: it.y })), targets: snapTargets(selection),
+              others, templates: gapTemplates(others) };
+        canvasEl.style.cursor = e.altKey ? 'copy' : 'move';
+      }
     }
-    g.before = before;
-    g.pointerId = e.pointerId;
     gesture = g;
     try { canvasEl.setPointerCapture(e.pointerId); } catch (err) { /* not fatal */ }
     updateUI();
     invalidate();
   }
 
+  // Alt/Option held while dragging: leave the originals where they were and carry copies instead.
+  function startDuplicateDrag(g) {
+    const list = [];
+    for (const s of g.starts) {
+      const it = byId(s.id);
+      if (!it) continue;
+      it.x = s.x; it.y = s.y;
+      list.push(it);
+    }
+    const clones = list.map((it) => ({ ...copyItem(it), id: nextId++ }));
+    items.push(...clones);
+    selection = new Set(clones.map((c) => c.id));
+    g.starts = clones.map((c) => ({ id: c.id, x: c.x, y: c.y }));
+    g.targets = snapTargets(selection);
+    g.others = othersBounds(selection);
+    g.templates = gapTemplates(g.others);
+    g.dupDone = true;
+    canvasEl.style.cursor = 'copy';
+  }
+
+  function moveGesture(g, e, pt) {
+    if (!g.moved) {
+      if (Math.hypot(e.clientX - g.cx, e.clientY - g.cy) < DRAG_PX) return;
+      g.moved = true;
+    }
+    if (e.altKey && !g.dupDone) startDuplicateDrag(g);
+    let dx = pt.x - g.px, dy = pt.y - g.py, lockX = false, lockY = false;
+    if (e.shiftKey) {                                   // Shift keeps the move to one direction
+      if (Math.abs(dx) >= Math.abs(dy)) { dy = 0; lockY = true; } else { dx = 0; lockX = true; }
+    }
+    const gb = g.bounds, midX = (gb.l + gb.r) / 2, midY = (gb.t + gb.b) / 2;
+    const snapping = !skipSnapKey(e) && (snap.objects || snap.grid);
+    const tg = snap.objects ? g.targets : { xs: [], ys: [] };
+    if (snapping) {
+      const tol = SNAP_PX / view.s, grid = snap.grid ? snap.size : 0;
+      const sx = lockX ? null : bestSnap([gb.l + dx, midX + dx, gb.r + dx], tg.xs, grid, tol);
+      const sy = lockY ? null : bestSnap([gb.t + dy, midY + dy, gb.b + dy], tg.ys, grid, tol);
+      let px = null, py = null;
+      if (snap.objects) {                               // equal spacing between this group and its neighbors
+        const dxE = dx + (sx ? sx.d : 0), dyE = dy + (sy ? sy.d : 0);
+        if (!lockX) px = spacingSnap('x', { l: gb.l + dx, r: gb.r + dx, t: gb.t + dyE, b: gb.b + dyE }, g.others, tol, g.templates);
+        if (!lockY) py = spacingSnap('y', { l: gb.l + dxE, r: gb.r + dxE, t: gb.t + dy, b: gb.b + dy }, g.others, tol, g.templates);
+      }
+      if (px && (!sx || Math.abs(px.d) < Math.abs(sx.d) - 1e-9)) dx += px.d; else if (sx) dx += sx.d;
+      if (py && (!sy || Math.abs(py.d) < Math.abs(sy.d) - 1e-9)) dy += py.d; else if (sy) dy += sy.d;
+    }
+    const c = clampDelta(g.starts, dx, dy);
+    dx = c.dx; dy = c.dy;
+    for (const s of g.starts) {
+      const it = byId(s.id);
+      if (it) { it.x = s.x + dx; it.y = s.y + dy; }
+    }
+    if (snapping && snap.objects) {
+      const D = { l: gb.l + dx, r: gb.r + dx, t: gb.t + dy, b: gb.b + dy };
+      guides = {
+        x: coincide([D.l, midX + dx, D.r], tg.xs),
+        y: coincide([D.t, midY + dy, D.b], tg.ys),
+        gaps: spacingMatches('x', D, g.others, g.templates).concat(spacingMatches('y', D, g.others, g.templates))
+      };
+    } else clearGuides();
+  }
+
+  const degLabel = (rad) => Math.round(wrapAngle(rad) * 180 / Math.PI) + '°';
+
+  function rotateGesture(g, e, pt, it) {
+    let rot = g.startRot + (Math.atan2(pt.y - it.y, pt.x - it.x) - g.startAngle);
+    const nearest = Math.round(rot / ROT_STEP) * ROT_STEP;
+    if (e.shiftKey) rot = nearest;
+    else if (!skipSnapKey(e) && snap.objects && Math.abs(rot - nearest) < ROT_PULL) rot = nearest;
+    it.rot = wrapAngle(rot);
+    g.readout = { x: pt.x, y: pt.y, text: degLabel(it.rot) };
+  }
+
+  // Rotating several items turns each one, and swings their positions around the middle of the group.
+  function groupRotateGesture(g, e, pt) {
+    let d = wrapAngle(Math.atan2(pt.y - g.pivot.y, pt.x - g.pivot.x) - g.startAngle);
+    const nearest = Math.round(d / ROT_STEP) * ROT_STEP;
+    if (e.shiftKey) d = nearest;
+    else if (!skipSnapKey(e) && snap.objects && Math.abs(d - nearest) < ROT_PULL) d = nearest;
+    g.delta = d;
+    const c = Math.cos(d), s = Math.sin(d);
+    for (const st of g.starts) {
+      const it = byId(st.id);
+      if (!it) continue;
+      const rx = st.x - g.pivot.x, ry = st.y - g.pivot.y;
+      it.x = clamp(g.pivot.x + rx * c - ry * s, 0, pageW);
+      it.y = clamp(g.pivot.y + rx * s + ry * c, 0, pageH);
+      it.rot = wrapAngle(st.rot + d);
+    }
+    g.readout = { x: pt.x, y: pt.y, text: degLabel(d) };
+  }
+
+  function resizeGesture(g, e, pt, it) {
+    // corner resize: the opposite corner stays put, the aspect ratio is kept
+    const dx = pt.x - g.anchor.x, dy = pt.y - g.anchor.y, c = Math.cos(g.rot), s = Math.sin(g.rot);
+    const vx = dx * c + dy * s, vy = -dx * s + dy * c;
+    const k0 = (vx * g.sx * g.w0 + vy * g.sy * g.h0) / (g.w0 * g.w0 + g.h0 * g.h0);
+    const sn = snapScale(k0, g.anchor, place(0, 0, g.rot, g.sx * g.w0, g.sy * g.h0), g.targets, skipSnapKey(e));
+    const txt = isText(it);
+    const kLo = txt ? MIN_FS / g.fs0 : MIN_SIZE / Math.min(g.w0, g.h0);
+    const kHi = Math.min(MAX_SIZE / Math.max(g.w0, g.h0), txt ? MAX_FS / g.fs0 : Infinity);
+    const kk = clamp(sn.k, kLo, kHi);
+    clearGuides();
+    if (sn.axis && sn.guide && Math.abs(kk - sn.k) < 1e-6) guides[sn.axis].push(sn.t);
+    it.w = g.w0 * kk;
+    it.h = g.h0 * kk;
+    if (txt) it.fs = g.fs0 * kk;                         // scaling a text box scales its letters
+    const ctr = place(g.anchor.x, g.anchor.y, g.rot, g.sx * it.w / 2, g.sy * it.h / 2);
+    it.x = clamp(ctr.x, 0, pageW);
+    it.y = clamp(ctr.y, 0, pageH);
+  }
+
+  // Resizing a group: every item's size and distance from the fixed (opposite) corner scale by the same k.
+  function groupResizeGesture(g, e, pt) {
+    const W0 = g.gb.r - g.gb.l, H0 = g.gb.b - g.gb.t;
+    const vx = (pt.x - g.anchor.x) * g.sx, vy = (pt.y - g.anchor.y) * g.sy;
+    const k0 = (vx * W0 + vy * H0) / (W0 * W0 + H0 * H0);
+    const sn = snapScale(k0, g.anchor, { x: g.sx * W0, y: g.sy * H0 }, g.targets, skipSnapKey(e));
+    const kk = clamp(sn.k, g.kMin, g.kMax);
+    clearGuides();
+    if (sn.axis && sn.guide && Math.abs(kk - sn.k) < 1e-6) guides[sn.axis].push(sn.t);
+    for (const st of g.starts) {
+      const it = byId(st.id);
+      if (!it) continue;
+      it.w = st.w * kk;
+      it.h = st.h * kk;
+      if (st.text) it.fs = st.fs * kk;
+      it.x = g.anchor.x + (st.x - g.anchor.x) * kk;
+      it.y = g.anchor.y + (st.y - g.anchor.y) * kk;
+    }
+  }
+
+  function marqueeGesture(g, e, pt) {
+    if (!g.moved) {
+      if (Math.hypot(e.clientX - g.cx, e.clientY - g.cy) < DRAG_PX) return;
+      g.moved = true;
+    }
+    marquee.x1 = pt.x;
+    marquee.y1 = pt.y;
+    const l = Math.min(marquee.x0, marquee.x1), r = Math.max(marquee.x0, marquee.x1);
+    const t = Math.min(marquee.y0, marquee.y1), b = Math.max(marquee.y0, marquee.y1);
+    const next = new Set(g.baseSel);
+    for (const it of items) {
+      const q = bounds(it);
+      if (q.r >= l && q.l <= r && q.b >= t && q.t <= b) next.add(it.id);
+    }
+    selection = next;
+    updateUI();
+  }
+
   function onPointerMove(e) {
     if (!gesture) {
-      if (e.pointerType !== 'touch') canvasEl.style.cursor = hoverCursor(pagePoint(e));
+      if (e.pointerType !== 'touch') canvasEl.style.cursor = hoverCursor(pagePoint(e), e);
       return;
     }
     if (e.pointerId !== gesture.pointerId) return;
-    const g = gesture, it = byId(g.id);
-    if (!it) return;
-    const pt = pagePoint(e);
-    if (g.type === 'move') {
-      it.x = clamp(g.startX + pt.x - g.px, 0, PAGE_W);
-      it.y = clamp(g.startY + pt.y - g.py, 0, PAGE_H);
-    } else if (g.type === 'rotate') {
-      let rot = g.startRot + (Math.atan2(pt.y - it.y, pt.x - it.x) - g.startAngle);
-      if (e.shiftKey) rot = Math.round(rot / SNAP) * SNAP;
-      it.rot = wrapAngle(rot);
-    } else {
-      // corner resize: the opposite corner stays put, the aspect ratio is kept
-      const dx = pt.x - g.anchor.x, dy = pt.y - g.anchor.y, c = Math.cos(g.rot), s = Math.sin(g.rot);
-      const vx = dx * c + dy * s, vy = -dx * s + dy * c;
-      let k = (vx * g.sx * g.w0 + vy * g.sy * g.h0) / (g.w0 * g.w0 + g.h0 * g.h0);
-      k = clamp(k, MIN_SIZE / Math.min(g.w0, g.h0), MAX_SIZE / Math.max(g.w0, g.h0));
-      it.w = g.w0 * k;
-      it.h = g.h0 * k;
-      const ctr = place(g.anchor.x, g.anchor.y, g.rot, g.sx * it.w / 2, g.sy * it.h / 2);
-      it.x = clamp(ctr.x, 0, PAGE_W);
-      it.y = clamp(ctr.y, 0, PAGE_H);
+    const g = gesture, pt = pagePoint(e);
+    if (g.type === 'marquee') marqueeGesture(g, e, pt);
+    else if (g.type === 'move') moveGesture(g, e, pt);
+    else if (g.type === 'gresize') groupResizeGesture(g, e, pt);
+    else if (g.type === 'grotate') groupRotateGesture(g, e, pt);
+    else {
+      const it = byId(g.id);
+      if (!it) return;
+      g.moved = true;
+      if (g.type === 'rotate') rotateGesture(g, e, pt, it);
+      else resizeGesture(g, e, pt, it);
     }
+    if (g.type === 'gresize' || g.type === 'grotate') g.moved = true;
     invalidate();
   }
 
@@ -557,15 +1668,30 @@
     if (!gesture || e.pointerId !== gesture.pointerId) return;
     const g = gesture;
     gesture = null;
+    marquee = null;
+    clearGuides();
     try { canvasEl.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-    if (!sameState(g.before, items)) pushHistory(g.before);
-    if (e.pointerType !== 'touch') canvasEl.style.cursor = hoverCursor(pagePoint(e));
+    // a plain click on one image of a group selects just that image
+    if (g.type === 'move' && !g.moved && e.type === 'pointerup' && selection.size > 1) selection = new Set([g.hitId]);
+    if (g.type !== 'marquee' && !unchanged(g.before)) pushHistory(g.before);
+    // clicking a text box twice quickly opens it for typing
+    if (g.type === 'move' && !g.moved && e.type === 'pointerup') {
+      const hit = byId(g.hitId), now = performance.now();
+      if (isText(hit) && lastTap.id === hit.id && now - lastTap.t < DBL_MS && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 10) {
+        lastTap = { t: 0, x: 0, y: 0, id: 0 };
+        startEditing(hit, false);
+        return;
+      }
+      lastTap = { t: now, x: e.clientX, y: e.clientY, id: g.hitId };
+    } else lastTap = { t: 0, x: 0, y: 0, id: 0 };
+    if (e.pointerType !== 'touch') canvasEl.style.cursor = hoverCursor(pagePoint(e), e);
     updateUI();
     invalidate();
   }
 
   // ---- drawing ---------------------------------------------------------
   function drawItem(g, it) {
+    if (isText(it)) { drawText(g, it); return; }
     g.push();
     g.translate(it.x, it.y);
     g.rotate(it.rot);
@@ -575,13 +1701,82 @@
   }
 
   function overhangs(it) {
-    const cs = Math.abs(Math.cos(it.rot)), sn = Math.abs(Math.sin(it.rot));
-    const hw = (it.w * cs + it.h * sn) / 2, hh = (it.w * sn + it.h * cs) / 2;
-    return it.x - hw < 0 || it.x + hw > PAGE_W || it.y - hh < 0 || it.y + hh > PAGE_H;
+    const q = bounds(it);
+    return q.l < 0 || q.r > pageW || q.t < 0 || q.b > pageH;
   }
 
-  function drawSelection(p, it) {
-    const inv = 1 / view.s, hs = HANDLE * inv, off = ROT_OFFSET * inv;
+  function drawGrid(ctx) {
+    const g = snap.size;
+    if (g * view.s < 4) return;                         // too dense to be useful at this zoom
+    const strong = units === 'cm' ? UNIT_U.cm * 5 : UNIT_U.in;     // every inch, or every 5 cm
+    const isStrong = (v) => { const r = v / strong; return Math.abs(r - Math.round(r)) < 1e-6; };
+    const minor = new Path2D(), major = new Path2D();
+    for (let i = 1; i * g < pageW - 0.01; i++) {
+      const path = isStrong(i * g) ? major : minor;
+      path.moveTo(i * g, 0); path.lineTo(i * g, pageH);
+    }
+    for (let i = 1; i * g < pageH - 0.01; i++) {
+      const path = isStrong(i * g) ? major : minor;
+      path.moveTo(0, i * g); path.lineTo(pageW, i * g);
+    }
+    ctx.save();
+    ctx.lineWidth = 1 / view.s;
+    ctx.strokeStyle = 'rgba(30, 90, 190, 0.14)';
+    ctx.stroke(minor);
+    ctx.strokeStyle = 'rgba(30, 90, 190, 0.30)';
+    ctx.stroke(major);
+    ctx.restore();
+  }
+
+  function handleDots(p, inv, accent, points) {
+    const hs = HANDLE * inv;
+    p.stroke(accent);
+    p.strokeWeight(2 * inv);
+    p.fill(255);
+    for (const [x, y] of points) p.rect(x - hs / 2, y - hs / 2, hs, hs, 2 * inv);
+  }
+
+  function drawSelection(p) {
+    const list = selItems();
+    if (!list.length) return;
+    if (editing && list.length === 1 && list[0].id === editing.id) return;   // the editor draws its own outline
+    const inv = 1 / view.s, accent = cssVar('--accent'), off = ROT_OFFSET * inv, hs = HANDLE * inv;
+    if (list.length > 1) {
+      // several: outline each item, and draw a dashed box around the whole group
+      p.noFill();
+      for (const it of list) {
+        p.push();
+        p.translate(it.x, it.y);
+        p.rotate(it.rot);
+        p.stroke(255, 210);
+        p.strokeWeight(3.5 * inv);
+        p.rect(-it.w / 2, -it.h / 2, it.w, it.h);
+        p.stroke(accent);
+        p.strokeWeight(1.5 * inv);
+        p.rect(-it.w / 2, -it.h / 2, it.w, it.h);
+        p.pop();
+      }
+      const spinning = gesture && gesture.type === 'grotate';
+      const gb = spinning ? gesture.gb : unionBounds(list);
+      const mid = (gb.l + gb.r) / 2, cy = (gb.t + gb.b) / 2;
+      const rh = groupRotHandle(gb);
+      p.push();
+      if (spinning) { p.translate(gesture.pivot.x, gesture.pivot.y); p.rotate(gesture.delta); p.translate(-gesture.pivot.x, -gesture.pivot.y); }
+      p.drawingContext.setLineDash([6 * inv, 4 * inv]);
+      p.stroke(accent);
+      p.strokeWeight(1 * inv);
+      p.noFill();
+      p.rect(gb.l, gb.t, gb.r - gb.l, gb.b - gb.t);
+      p.drawingContext.setLineDash([]);
+      p.line(mid, rh.side < 0 ? gb.t : gb.b, rh.p.x, rh.p.y);
+      p.strokeWeight(2 * inv);
+      p.fill(255);
+      p.circle(rh.p.x, rh.p.y, hs * 1.25);
+      p.pop();
+      if (!spinning) handleDots(p, inv, accent, CORNERS.map(([sx, sy]) => [sx > 0 ? gb.r : gb.l, sy > 0 ? gb.b : gb.t]));
+      return;
+    }
+    const it = list[0], rh = rotHandle(it), ly = rh.side * (it.h / 2 + off);
     p.push();
     p.translate(it.x, it.y);
     p.rotate(it.rot);
@@ -589,19 +1784,63 @@
     p.stroke(255, 210);
     p.strokeWeight(4 * inv);
     p.rect(-it.w / 2, -it.h / 2, it.w, it.h);
-    p.stroke(cssVar('--accent'));
+    p.stroke(accent);
     p.strokeWeight(2 * inv);
     p.rect(-it.w / 2, -it.h / 2, it.w, it.h);
-    p.line(0, -it.h / 2, 0, -it.h / 2 - off);
+    p.line(0, rh.side * it.h / 2, 0, ly);
     p.fill(255);
     for (const [sx, sy] of CORNERS) p.rect(sx * it.w / 2 - hs / 2, sy * it.h / 2 - hs / 2, hs, hs, 2 * inv);
-    p.circle(0, -it.h / 2 - off, hs * 1.25);
+    p.circle(0, ly, hs * 1.25);
     p.pop();
+  }
+
+  function pillPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // A small label (a gap size, or the angle while rotating) centered on a point.
+  function drawLabel(ctx, cx, cy, text, inv, color) {
+    ctx.save();
+    ctx.font = '600 ' + (11 * inv) + 'px "Instrument Sans", system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const w = ctx.measureText(text).width + 12 * inv, h = 18 * inv;
+    ctx.fillStyle = color;
+    pillPath(ctx, cx - w / 2, cy - h / 2, w, h, h / 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillText(text, cx, cy + 0.5 * inv);
+    ctx.restore();
+  }
+
+  // Equal-gap markers: a measured bar across each gap that matches another.
+  function drawGaps(p, ctx, inv, color) {
+    p.push();
+    p.stroke(color);
+    p.strokeWeight(1.5 * inv);
+    const t = 5 * inv;
+    for (const s of guides.gaps) {
+      if (s.axis === 'x') { p.line(s.a, s.pos, s.b, s.pos); p.line(s.a, s.pos - t, s.a, s.pos + t); p.line(s.b, s.pos - t, s.b, s.pos + t); }
+      else { p.line(s.pos, s.a, s.pos, s.b); p.line(s.pos - t, s.a, s.pos + t, s.a); p.line(s.pos - t, s.b, s.pos + t, s.b); }
+    }
+    p.pop();
+    for (const s of guides.gaps) {
+      if ((s.b - s.a) * view.s < 40) continue;
+      const mid = (s.a + s.b) / 2;
+      if (s.axis === 'x') drawLabel(ctx, mid, s.pos - 13 * inv, fmtLen(s.b - s.a), inv, color);
+      else drawLabel(ctx, s.pos + 28 * inv, mid, fmtLen(s.b - s.a), inv, color);
+    }
   }
 
   function paint(p) {
     p.clear();
-    const ctx = p.drawingContext, dpr = p.pixelDensity();
+    const ctx = p.drawingContext, dpr = p.pixelDensity(), inv = 1 / view.s;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     p.push();
@@ -615,46 +1854,106 @@
     ctx.restore();
 
     // the sheet
-    ctx.save();
+    p.push();
     ctx.shadowColor = 'rgba(8, 28, 16, 0.30)';
     ctx.shadowBlur = 22 * dpr;
     ctx.shadowOffsetY = 6 * dpr;
     p.noStroke();
     p.fill(255);
-    p.rect(0, 0, PAGE_W, PAGE_H);
-    ctx.restore();
+    p.rect(0, 0, pageW, pageH);
+    p.pop();
 
-    // photos, cropped to the sheet exactly as the export will be
+    // items and grid, cropped to the sheet exactly as the export will be (the export has no grid)
     ctx.save();
     ctx.beginPath();
-    ctx.rect(0, 0, PAGE_W, PAGE_H);
+    ctx.rect(0, 0, pageW, pageH);
     ctx.clip();
     for (const it of items) drawItem(p, it);
+    if (snap.grid) drawGrid(ctx);
     ctx.restore();
 
-    const sel = getSelected();
-    if (sel) drawSelection(p, sel);
+    drawSelection(p);
+
+    const guide = cssVar('--guide');
+    if (guides.x.length || guides.y.length) {
+      p.push();
+      ctx.setLineDash([5 * inv, 4 * inv]);
+      p.stroke(guide);
+      p.strokeWeight(1 * inv);
+      for (const x of guides.x) p.line(x, 0, x, pageH);
+      for (const y of guides.y) p.line(0, y, pageW, y);
+      p.pop();
+    }
+    if (guides.gaps.length) drawGaps(p, ctx, inv, guide);
+
+    if (gesture && gesture.readout) drawLabel(ctx, gesture.readout.x + 26 * inv, gesture.readout.y - 22 * inv, gesture.readout.text, inv, cssVar('--accent'));
+
+    if (marquee) {
+      const accent = cssVar('--accent');
+      const x = Math.min(marquee.x0, marquee.x1), y = Math.min(marquee.y0, marquee.y1);
+      const w = Math.abs(marquee.x1 - marquee.x0), h = Math.abs(marquee.y1 - marquee.y0);
+      ctx.save();
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = accent;
+      ctx.fillRect(x, y, w, h);
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = inv;
+      ctx.strokeStyle = accent;
+      ctx.strokeRect(x, y, w, h);
+      ctx.restore();
+    }
     p.pop();
+    positionTextBar();
   }
 
   // ---- layout ----------------------------------------------------------
   function layout() {
     const w = Math.max(1, els.box.clientWidth), h = Math.max(1, els.box.clientHeight);
-    const pad = w < 560 ? 20 : 44;
-    const s = Math.max(0.05, Math.min((w - pad * 2) / PAGE_W, (h - pad * 2) / PAGE_H));
-    view = { s, ox: (w - PAGE_W * s) / 2, oy: (h - PAGE_H * s) / 2, w, h };
+    const pad = w < 560 ? 10 : 18;
+    const s = Math.max(0.05, Math.min((w - pad * 2) / pageW, (h - pad * 2) / pageH));
+    view = { s, ox: (w - pageW * s) / 2, oy: (h - pageH * s) / 2, w, h };
 
     const o = els.overlay.style;
     o.left = view.ox + 'px';
     o.top = view.oy + 'px';
-    o.width = PAGE_W * s + 'px';
-    o.height = PAGE_H * s + 'px';
+    o.width = pageW * s + 'px';
+    o.height = pageH * s + 'px';
 
     if (ready && (sketch.width !== w || sketch.height !== h)) sketch.resizeCanvas(w, h, true);
+    if (canvasEl) canvasEl.setAttribute('aria-label', 'Collage page, ' + PAGES[pageId].label);
+    if (editing) { const it = byId(editing.id); if (it) styleEditor(it); }
     invalidate();
   }
 
-  // ---- export ----------------------------------------------------------
+  // ---- popovers --------------------------------------------------------
+  const pops = [
+    { btn: els.pageBtn, pop: els.pagePop },
+    { btn: els.helpBtn, pop: els.helpPop },
+    { btn: els.dlMenuBtn, pop: els.dlPop }
+  ];
+  function closePopovers(except) {
+    for (const p of pops) {
+      if (p === except) continue;
+      p.pop.hidden = true;
+      p.btn.setAttribute('aria-expanded', 'false');
+      p.btn.classList.remove('open');
+    }
+  }
+  function togglePop(p) {
+    const opening = p.pop.hidden;
+    closePopovers();
+    if (!opening) return;
+    p.pop.hidden = false;
+    p.btn.setAttribute('aria-expanded', 'true');
+    p.btn.classList.add('open');
+    const r = p.btn.getBoundingClientRect(), w = p.pop.offsetWidth, h = p.pop.offsetHeight;
+    const above = r.top > window.innerHeight / 2;           // the help button sits at the bottom, so its panel opens upward
+    p.pop.style.top = (above ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
+    p.pop.style.left = clamp(r.right - w, 8, Math.max(8, window.innerWidth - w - 8)) + 'px';
+  }
+  const anyPopOpen = () => pops.some((p) => !p.pop.hidden);
+
+  // ---- export, PDF and print -------------------------------------------
   function stamp() {
     const d = new Date(), z = (n) => String(n).padStart(2, '0');
     return d.getFullYear() + z(d.getMonth() + 1) + z(d.getDate()) + '-' + z(d.getHours()) + z(d.getMinutes());
@@ -677,54 +1976,117 @@
     setTimeout(() => URL.revokeObjectURL(url), 10000);
   }
 
-  async function exportPNG() {
+  async function deliver(blob, name) {
+    if (!downloadsSettled) await Promise.race([downloadsReady, new Promise((r) => setTimeout(r, 1500))]);
+    if (downloadsNS) {
+      try {
+        await downloadsNS.save({ filename: name, data: blob });
+        toast('Saved ' + name);
+      } catch (err) {
+        const code = err && err.code;
+        if (code === 'declined') toast('Download canceled.');
+        else if (code === 'rate_limited') toast('Wait a moment, then try again.');
+        else toast("The file couldn't be saved here.");
+      }
+    } else {
+      anchorDownload(blob, name);
+      toast('Downloading ' + name);
+    }
+  }
+
+  // The whole page drawn at 300 dpi (no grid, guides or handles), as a p5 graphics buffer.
+  function drawPage(scale) {
+    const W = Math.round(pageW * scale), H = Math.round(pageH * scale);
+    const g = sketch.createGraphics(W, H);
+    g.pixelDensity(1);
+    g.background(255);
+    g.drawingContext.imageSmoothingQuality = 'high';
+    g.scale(scale);
+    for (const it of items) drawItem(g, it);
+    return g;
+  }
+
+  async function runExport(kind) {
     if (exporting || !items.length || !ready) return;
+    finishEditing();
     exporting = true;
     els.dlLabel.textContent = 'Preparing…';
     updateUI();
     await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
-    let blob = null;
+    let blob = null, name = 'collage-' + stamp();
     try {
-      const W = Math.round(PAGE_W * EXPORT_SCALE), H = Math.round(PAGE_H * EXPORT_SCALE);
-      const g = sketch.createGraphics(W, H);
-      g.pixelDensity(1);
-      g.background(255);
-      g.drawingContext.imageSmoothingQuality = 'high';
-      g.scale(EXPORT_SCALE);
-      for (const it of items) drawItem(g, it);
-      blob = await new Promise((resolve) => g.elt.toBlob(resolve, 'image/png'));
+      await fontsReady();
+      const g = drawPage(EXPORT_SCALE);
+      if (kind === 'pdf') {
+        const jpg = await new Promise((resolve) => g.elt.toBlob(resolve, 'image/jpeg', 0.93));
+        const bytes = new Uint8Array(await jpg.arrayBuffer());
+        blob = buildPdf(bytes, g.elt.width, g.elt.height, PAGES[pageId].pdf);
+        name += '.pdf';
+      } else {
+        blob = await new Promise((resolve) => g.elt.toBlob(resolve, 'image/png'));
+        name += '.png';
+      }
       g.remove();
     } catch (err) {
       blob = null;
     }
-    if (!blob) {
-      toast("The image couldn't be rendered. Try removing a few photos.");
-    } else {
-      const name = 'collage-' + stamp() + '.png';
-      if (!downloadsSettled) await Promise.race([downloadsReady, new Promise((r) => setTimeout(r, 1500))]);
-      if (downloadsNS) {
-        try {
-          await downloadsNS.save({ filename: name, data: blob });
-          toast('Saved ' + name);
-        } catch (err) {
-          const code = err && err.code;
-          if (code === 'declined') toast('Download canceled.');
-          else if (code === 'rate_limited') toast('Wait a moment, then try again.');
-          else toast("The file couldn't be saved here.");
-        }
-      } else {
-        anchorDownload(blob, name);
-        toast('Downloading ' + name);
-      }
-    }
+    if (!blob) toast("The image couldn't be rendered. Try removing a few images.");
+    else await deliver(blob, name);
     exporting = false;
-    els.dlLabel.textContent = 'Download PNG';
+    els.dlLabel.textContent = 'Download';
     updateUI();
   }
+
+  // A one-page PDF around a JPEG of the sheet, written by hand so no library is needed.
+  function buildPdf(jpg, iw, ih, size) {
+    const enc = new TextEncoder(), parts = [], offsets = [];
+    let len = 0;
+    const push = (d) => { const b = typeof d === 'string' ? enc.encode(d) : d; parts.push(b); len += b.length; };
+    const obj = (n, head, stream) => {
+      offsets[n] = len;
+      push(n + ' 0 obj\n' + head + '\n');
+      if (stream) { push('stream\n'); push(stream); push('\nendstream\n'); }
+      push('endobj\n');
+    };
+    const f = (v) => v.toFixed(2), pw = size[0], ph = size[1];
+    const content = 'q ' + f(pw) + ' 0 0 ' + f(ph) + ' 0 0 cm /Im0 Do Q';
+    push('%PDF-1.4\n');
+    obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+    obj(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+    obj(3, '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ' + f(pw) + ' ' + f(ph) + '] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>');
+    obj(4, '<< /Type /XObject /Subtype /Image /Width ' + iw + ' /Height ' + ih + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpg.length + ' >>', jpg);
+    obj(5, '<< /Length ' + content.length + ' >>', enc.encode(content));
+    const xref = len;
+    let x = 'xref\n0 6\n0000000000 65535 f \n';
+    for (let n = 1; n <= 5; n++) x += String(offsets[n]).padStart(10, '0') + ' 00000 n \n';
+    push(x + 'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n');
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+
+  // Printing from the browser (File > Print or Ctrl/Cmd+P): the print sheet is filled with just the page.
+  let printFired = false;
+  function renderPrint() {
+    printFired = true;
+    if (!ready) return;
+    finishEditing();
+    items.filter(isText).forEach(fitText);
+    const g = drawPage(EXPORT_SCALE), c = els.printCanvas;
+    c.width = g.elt.width;
+    c.height = g.elt.height;
+    c.getContext('2d').drawImage(g.elt, 0, 0);
+    g.remove();
+  }
+  function clearPrint() { els.printCanvas.width = 1; els.printCanvas.height = 1; }
+  window.addEventListener('beforeprint', renderPrint);
+  window.addEventListener('afterprint', clearPrint);
+  const printMedia = window.matchMedia('print');
+  const onPrintMedia = (e) => { if (e.matches && !printFired) renderPrint(); if (!e.matches) { printFired = false; clearPrint(); } };
+  if (printMedia.addEventListener) printMedia.addEventListener('change', onPrintMedia); else if (printMedia.addListener) printMedia.addListener(onPrintMedia);
 
   // ---- wiring ----------------------------------------------------------
   els.add.addEventListener('click', () => els.file.click());
   els.emptyAdd.addEventListener('click', () => els.file.click());
+  els.textBtn.addEventListener('click', addText);
   els.file.addEventListener('change', () => {
     const picked = Array.from(els.file.files || []);
     els.file.value = '';
@@ -732,25 +2094,104 @@
   });
   els.undo.addEventListener('click', undo);
   els.redo.addEventListener('click', redo);
+  els.dup.addEventListener('click', duplicateSelection);
   els.del.addEventListener('click', deleteSelected);
-  els.dl.addEventListener('click', exportPNG);
+  els.dl.addEventListener('click', () => runExport('png'));
+  pops.forEach((p) => p.btn.addEventListener('click', () => togglePop(p)));
+  els.dlPop.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => {
+    closePopovers();
+    const act = b.dataset.act;
+    runExport(act);
+  }));
+  els.pageOpts.forEach((b) => b.addEventListener('click', () => setPage(b.dataset.page)));
+  els.unitOpts.forEach((b) => b.addEventListener('click', () => setUnits(b.dataset.units)));
+  document.addEventListener('pointerdown', (e) => {
+    if (!anyPopOpen()) return;
+    if (!pops.some((p) => p.pop.contains(e.target) || p.btn.contains(e.target))) closePopovers();
+  });
+  window.addEventListener('resize', () => closePopovers());
 
-  window.addEventListener('keydown', (e) => {
-    const t = e.target;
-    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    const mod = e.metaKey || e.ctrlKey, key = (e.key || '').toLowerCase();
-    if (mod && !e.altKey && key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
-    else if (mod && !e.altKey && key === 'y') { e.preventDefault(); redo(); }
-    else if (!mod && (e.key === 'Delete' || e.key === 'Backspace')) {
-      if (selectedId) { e.preventDefault(); deleteSelected(); }
-    } else if (e.key === 'Escape') {
-      if (selectedId && !gesture) { selectedId = null; updateUI(); invalidate(); }
+  els.alignBtns.forEach((b) => b.addEventListener('click', () => {
+    if (!selection.size) { toast(items.length ? 'Click an item to select it first.' : 'Add an image first.'); return; }
+    alignSelection(b.dataset.align);
+  }));
+  els.distBtns.forEach((b) => b.addEventListener('click', () => {
+    if (selection.size < 3) {
+      toast(selection.size ? 'Space evenly needs three or more items. Shift-click them, or drag a box around them.'
+                           : 'Select three or more items first. Shift-click them, or drag a box around them.');
+      return;
     }
+    distribute(b.dataset.dist);
+  }));
+  els.snapObj.addEventListener('click', () => { snap.objects = !snap.objects; savePrefs(); updateUI(); });
+  els.snapGrid.addEventListener('click', () => { snap.grid = !snap.grid; savePrefs(); updateUI(); invalidate(); });
+  els.gridSize.addEventListener('change', () => {
+    snap.size = Number(els.gridSize.value);
+    savePrefs();
+    els.gridSize.blur();                                // so the keyboard shortcuts keep working
+    invalidate();
   });
 
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && anyPopOpen()) { closePopovers(); return; }
+    if (isTyping(e.target)) return;
+    const mod = e.metaKey || e.ctrlKey, key = (e.key || '').toLowerCase();
+    if (mod && !e.altKey) {
+      if (key === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+      else if (key === 'y') { e.preventDefault(); redo(); }
+      else if (key === 'd') { e.preventDefault(); duplicateSelection(); }
+      else if (key === 'a') { e.preventDefault(); selection = new Set(items.map((it) => it.id)); updateUI(); invalidate(); }
+      else if (key === 'c') { if (copySelection(false)) markSystemClipboard(null); }
+      else if (key === 'x') { if (selection.size) { e.preventDefault(); copySelection(true); markSystemClipboard(null); } }
+      return;
+    }
+    if (e.key === '?' || (e.key === '/' && e.shiftKey)) { e.preventDefault(); togglePop(pops[1]); return; }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (selection.size) { e.preventDefault(); deleteSelected(); }
+    } else if (e.key === 'Enter' || e.key === 'F2') {
+      const it = single();
+      if (isText(it) && !gesture) { e.preventDefault(); startEditing(it, false); }
+    } else if (e.key === 'Escape') {
+      if (selection.size && !gesture) { selection = new Set(); updateUI(); invalidate(); }
+    } else if (e.key.startsWith('Arrow') && selection.size) {
+      e.preventDefault();
+      const step = e.shiftKey ? NUDGE_BIG : NUDGE;
+      nudge(e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0,
+            e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0);
+    }
+  });
+  // holding Alt/Option over an item shows that dragging will copy it
+  const onModKey = (e) => {
+    if (e.key !== 'Alt' || gesture || !canvasEl || !canvasEl.matches(':hover')) return;
+    canvasEl.style.cursor = e.type === 'keydown' && canvasEl.style.cursor === 'move' ? 'copy'
+      : e.type === 'keyup' && canvasEl.style.cursor === 'copy' ? 'move' : canvasEl.style.cursor;
+  };
+  window.addEventListener('keydown', onModKey);
+  window.addEventListener('keyup', onModKey);
+
+  // Copying inside the app replaces whatever is on the system clipboard, so an older image copied from
+  // somewhere else can't be pasted by mistake instead of the selection.
+  function markSystemClipboard(e) {
+    const marker = 'Image Collage Maker selection';
+    try {
+      if (e && e.clipboardData) { e.clipboardData.setData('text/plain', marker); e.preventDefault(); }
+      else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(marker).catch(() => {});
+    } catch (err) { /* best effort */ }
+  }
+  const onCopyEvent = (e) => {
+    if (isTyping(e.target)) return;
+    let handled = performance.now() - copiedAt < 600;                 // the key press already took care of it
+    if (!handled && selection.size) handled = copySelection(e.type === 'cut');   // Copy chosen from a menu
+    if (handled) markSystemClipboard(e);
+  };
+  window.addEventListener('copy', onCopyEvent);
+  window.addEventListener('cut', onCopyEvent);
+
   window.addEventListener('paste', (e) => {
+    if (isTyping(e.target)) return;
     const files = Array.from((e.clipboardData && e.clipboardData.files) || []).filter((f) => f.type.startsWith('image/'));
     if (files.length) { e.preventDefault(); addFiles(files); }
+    else if (clipboard.length) { e.preventDefault(); pasteClipboard(); }
   });
 
   let dragDepth = 0;
@@ -782,7 +2223,6 @@
       const cnv = p.createCanvas(Math.max(1, els.box.clientWidth), Math.max(1, els.box.clientHeight));
       canvasEl = cnv.elt;
       canvasEl.setAttribute('role', 'img');
-      canvasEl.setAttribute('aria-label', 'Collage page, US Letter');
       canvasEl.addEventListener('pointerdown', onPointerDown);
       canvasEl.addEventListener('pointermove', onPointerMove);
       canvasEl.addEventListener('pointerup', onPointerEnd);
@@ -794,9 +2234,12 @@
     p.draw = () => paint(p);
   }, els.box);
 
+  buildGridOptions();
+  applyPage(pageId);
   updateUI();
   layout();
 })();
 </script>
 
-</body></html>
+</body>
+</html>
